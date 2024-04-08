@@ -1,16 +1,20 @@
 from models.whisper import Speech2TextClient
 from modules.logger import CustomLogger
-import telebot
+import telebot  # type: ignore
 import os
 
 # create logger
 logger = CustomLogger()
 
 # get environment variables
-api_key = os.environ.get("OPENAI_API_KEY", "")
-telegram_bot_token = os.environ.get("TELEGRAM_TOKEN", "")
+api_key = os.environ.get(
+    "OPENAI_API_KEY", "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"
+)
+telegram_bot_token = os.environ.get(
+    "TELEGRAM_TOKEN", "7025545038:AAE8erqS3PKGEG-t0orCQxm84h6yaA0DRw4"
+)
 
-if api_key == "" or telegram_bot_token == "":
+if api_key is None or telegram_bot_token is None:
     logger.error("Missing environment variables.", "server")
     raise ValueError("Missing environment variables.")
 
