@@ -1,28 +1,36 @@
 from models.whisper import Speech2TextClient
 from modules.logger import CustomLogger
+from data.user_database import UserDatabase
 import telebot  # type: ignore
 import os
+
+from routes.start import StartRoute
 
 # create logger
 logger = CustomLogger()
 
 # get environment variables
-api_key = os.environ.get(
-    "OPENAI_API_KEY", "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"
-)
-telegram_bot_token = os.environ.get(
-    "TELEGRAM_TOKEN", "7025545038:AAE8erqS3PKGEG-t0orCQxm84h6yaA0DRw4"
-)
+api_key = os.environ.get("OPENAI_API_KEY", "")
+telegram_bot_token = os.environ.get("TELEGRAM_TOKEN", "")
+supabase_url = os.environ.get("SUPABASE_URL", "")
+supabase_key = os.environ.get("SUPABASE_KEY", "")
 
-if api_key is None or telegram_bot_token is None:
+if not all([api_key, telegram_bot_token, supabase_url, supabase_key]):
     logger.error("Missing environment variables.", "server")
     raise ValueError("Missing environment variables.")
+
+# create supabase client
+database = UserDatabase(supabase_url, supabase_key, logger)
 
 # create bot
 bot = telebot.TeleBot(telegram_bot_token)
 
-# create client
+# create speech2text client
 whisper_client = Speech2TextClient(api_key=api_key, logger=logger)
+
+
+# register routes
+StartRoute(bot=bot, logger=logger, user_database=database)
 
 if __name__ == "__main__":
     logger.info("App started.", "server")

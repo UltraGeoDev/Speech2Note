@@ -18,7 +18,7 @@ class CustomLogger:
         self.user_logger.setLevel(logging.INFO)
         user_file_handler = logging.FileHandler("logs/user.log")
         user_file_handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+            logging.Formatter("%(asctime)s - %(levelname)s - USER - %(message)s")
         )
         self.user_logger.addHandler(user_file_handler)
 
@@ -27,7 +27,7 @@ class CustomLogger:
         self.openai_logger.setLevel(logging.INFO)
         openai_file_handler = logging.FileHandler("logs/openai.log")
         openai_file_handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+            logging.Formatter("%(asctime)s - %(levelname)s - OPENAI - %(message)s")
         )
         self.openai_logger.addHandler(openai_file_handler)
 
@@ -36,7 +36,7 @@ class CustomLogger:
         self.server_logger.setLevel(logging.INFO)
         server_file_handler = logging.FileHandler("logs/server.log")
         server_file_handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+            logging.Formatter("%(asctime)s - %(levelname)s - SERVER - %(message)s")
         )
         self.server_logger.addHandler(server_file_handler)
 
