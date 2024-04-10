@@ -6,6 +6,7 @@ import os
 from modules.request_queue import Queue
 
 from routes.start import StartRoute
+from routes.profile import ProfileRoute
 
 # create logger
 logger = CustomLogger()
@@ -37,6 +38,7 @@ whisper_client = Speech2TextClient(api_key=api_key, logger=logger)
 
 # register routes
 StartRoute(bot=bot, logger=logger, user_database=database)
+ProfileRoute(bot=bot, logger=logger, user_database=database)
 
 if __name__ == "__main__":
     logger.info("App started.", "server")

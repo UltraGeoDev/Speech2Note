@@ -21,8 +21,8 @@ class User:
         return self.__tokens
 
     @property
-    def created_at(self) -> datetime:
-        return self.__created_at
+    def created_at(self) -> str:
+        return datetime.strftime(self.__created_at, "%Y-%m-%d %H:%M:%S")
 
     def get_data(self) -> dict:
         return {
