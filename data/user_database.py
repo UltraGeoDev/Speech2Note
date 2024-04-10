@@ -19,7 +19,7 @@ class UserDatabase:
         except Exception as e:
             self.logger.error(str(e), "user")
 
-    def get_user(self, user_id: int) -> Optional[User]:
+    def get_user(self, user_id: int) -> [int, Optional[User]]:
         try:
             user_data = (
                 self.client.table("users")
@@ -29,7 +29,7 @@ class UserDatabase:
                 .data
             )
             user = User(**user_data[0])
-            return user if user_data else None
+            return 200, user if user_data else None
         except Exception as e:
             self.logger.error(str(e), "user")
-            return None
+            return 400, None

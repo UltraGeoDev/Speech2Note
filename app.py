@@ -3,6 +3,7 @@ from modules.logger import CustomLogger
 from data.user_database import UserDatabase
 import telebot  # type: ignore
 import os
+from modules.request_queue import Queue
 
 from routes.start import StartRoute
 
@@ -18,6 +19,11 @@ supabase_key = os.environ.get("SUPABASE_KEY", "")
 if not all([api_key, telegram_bot_token, supabase_url, supabase_key]):
     logger.error("Missing environment variables.", "server")
     raise ValueError("Missing environment variables.")
+
+# create queue
+queue = Queue(
+    timeout=10, logger=logger, processing_function=lambda x: x
+)  # TODO add processing function
 
 # create supabase client
 database = UserDatabase(supabase_url, supabase_key, logger)

@@ -17,7 +17,13 @@ class StartRoute:
 
     def __start(self, message: telebot.types.Message) -> None:  # type: ignore
 
-        user = self.database.get_user(message.chat.id)
+        code, user = self.database.get_user(message.chat.id)
+
+        if code != 200:
+            self.bot.send_message(
+                message.chat.id,
+                "Произошла ошибка. Попробуйте ещё раз позже.\nМы уже работаем над этим.",
+            )
 
         if user is None:
             self.database.new_user(message.chat.id, message.from_user.username)
