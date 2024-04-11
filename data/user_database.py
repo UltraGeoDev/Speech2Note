@@ -33,3 +33,35 @@ class UserDatabase:
         except Exception as e:
             self.logger.error(str(e), "user")
             return 400, None
+
+    def increase_tokens(self, user_id: int, tokens: int) -> int:
+        try:
+            current_tokens = (
+                self.client.table("users")
+                .select("tokens")
+                .eq("user_id", str(user_id))
+                .execute()
+            ).data[0]["tokens"]
+            self.client.table("users").update({"tokens": current_tokens + tokens}).eq(
+                "user_id", str(user_id)
+            ).execute()
+            return 200
+        except Exception as e:
+            self.logger.error(str(e), "user")
+            return 400
+
+    def decrease_tokens(self, user_id: int, tokens: int) -> int:
+        try:
+            current_tokens = (
+                self.client.table("users")
+                .select("tokens")
+                .eq("user_id", str(user_id))
+                .execute()
+            ).data[0]["tokens"]
+            self.client.table("users").update({"tokens": current_tokens - tokens}).eq(
+                "user_id", str(user_id)
+            ).execute()
+            return 200
+        except Exception as e:
+            self.logger.error(str(e), "user")
+            return 400
