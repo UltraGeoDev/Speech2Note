@@ -8,6 +8,8 @@ from modules.request_queue import Queue
 from routes.start import StartRoute
 from routes.profile import ProfileRoute
 from routes.prices import PricesRoute
+from routes.tokens import TokensRoute
+from routes.about import AboutRoute
 
 # create logger
 logger = CustomLogger()
@@ -41,11 +43,10 @@ bot = telebot.TeleBot(telegram_bot_token)
 # register routes
 StartRoute(bot=bot, logger=logger, user_database=database)
 ProfileRoute(bot=bot, logger=logger, user_database=database)
+TokensRoute(bot=bot, logger=logger, user_database=database)
 PricesRoute(bot=bot, logger=logger)
+AboutRoute(bot=bot, logger=logger)
 
-from model.oauth import get_token
-
-print(get_token(t2n_auth_data, "GIGACHAT_API_PERS"))
 
 if __name__ == "__main__":
     logger.info("App started.", "server")

@@ -1,22 +1,21 @@
 import telebot  # type: ignore
-from data.user_database import UserDatabase
 from modules.logger import CustomLogger
+from data.user_database import UserDatabase
 
 
-class ProfileRoute:
-
+class TokensRoute:
     def __init__(self, bot: telebot.TeleBot, logger: CustomLogger, user_database: UserDatabase) -> None:  # type: ignore
         self.bot = bot
         self.logger = logger
         self.database = user_database
 
-        @bot.message_handler(commands=["profile"])
-        def profile(message: telebot.types.Message) -> None:  # type: ignore
-            self.__profile(message)
+        @bot.message_handler(commands=["tokens"])
+        def tokens(message: telebot.types.Message) -> None:  # type: ignore
+            self.__tokens(message)
 
-        self.logger.info("Profile route initialized.", "server")
+        self.logger.info("Tokens route initialized.", "server")
 
-    def __profile(self, message: telebot.types.Message) -> None:  # type: ignore
+    def __tokens(self, message: telebot.types.Message) -> None:  # type: ignore
 
         code, user = self.database.get_user(message.chat.id)
 
@@ -32,7 +31,7 @@ class ProfileRoute:
                 message.chat.id,
                 f"Привет, {message.from_user.username}!\n"
                 + "---------------\n"
-                + "Ты не можешь видеть профиль, потому что ты не был зарегистрирован.\n"
+                + "Ты не можешь получить токены, потому что ты не был зарегистрирован.\n"
                 + "Но у меня хорошие новости! Я уже тебя зарагестрировал!\n"
                 + "Пришли мне аудиофайл, и я помогу тебе создать конспект из него.\n"
                 + "---------------\n"
@@ -46,14 +45,13 @@ class ProfileRoute:
 
         self.bot.send_message(
             message.chat.id,
-            f"Привет, {user.name}!\n"
+            "На данном этапе разработки бота дополнительные токены можно получить только написав разработчику бота на почту:\n"
+            + "dev@ultrageopro.ru\n"
             + "---------------\n"
-            + f"У тебя {user.tokens} токенов.\n"
-            + f"Аккаунт создан {user.created_at}\n"
-            + "---------------\n"
+            + "Приносим извинения за доставленные неудобства.\n"
             + "Пришли мне аудиофайл, и я помогу тебе создать конспект из него.\n"
             + "---------------\n"
-            + "Получить токены /tokens\n"
+            + "Посмотреть профиль /profile\n"
             + "Посмотреть цены /prices\n"
             + "Информация о боте /about\n"
             + "---------------",
