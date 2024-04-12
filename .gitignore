@@ -1,8 +1,10 @@
+bin/
 configs
 logs
 run.sh
 .vscode/
 ffmpeg
+share
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

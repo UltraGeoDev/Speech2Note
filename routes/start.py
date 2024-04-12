@@ -4,28 +4,59 @@ from data.user_database import UserDatabase
 
 
 class StartRoute:
-    def __init__(self, bot: telebot.TeleBot, logger: CustomLogger, user_database: UserDatabase) -> None:  # type: ignore
+    """
+    Class that handles '/start' command requests.
+
+    Attributes:
+        bot (telebot.TeleBot): The Telegram bot instance.
+        logger (CustomLogger): The logger instance.
+        database (UserDatabase): The user database instance.
+    """
+
+    def __init__(  # type: ignore
+        self, bot: telebot.TeleBot, logger: CustomLogger, user_database: UserDatabase
+    ) -> None:
+        """
+        Initializes the StartRoute instance.
+
+        Args:
+            bot (telebot.TeleBot): The Telegram bot instance.
+            logger (CustomLogger): The logger instance.
+            user_database (UserDatabase): The user database instance.
+        """
         self.bot = bot
         self.logger = logger
         self.database = user_database
 
+        # Handler for the '/start' command
         @bot.message_handler(commands=["start"])
         def start(message: telebot.types.Message) -> None:  # type: ignore
+            """
+            Handler method for the '/start' command.
+
+            Args:
+                message (telebot.types.Message): The message object.
+            """
             self.__start(message)
 
+        # Log route initialization
         self.logger.info("Start route initialized.", "server")
 
     def __start(self, message: telebot.types.Message) -> None:  # type: ignore
+        """
+        Handle start requests.
+
+        Args:
+            message (telebot.types.Message): The message object received from the user.
+
+        Returns:
+            None
+        """
 
         code, user = self.database.get_user(message.chat.id)
 
-        if code != 200:
-            self.bot.send_message(
-                message.chat.id,
-                "Произошла ошибка. Попробуйте ещё раз позже.\nМы уже работаем над этим.",
-            )
-
-        if user is None:
+        # If the user is not found in the database
+        if code != 200 or user is None:
             self.database.new_user(message.chat.id, message.from_user.username)
             self.bot.send_message(
                 message.chat.id,

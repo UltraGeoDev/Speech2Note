@@ -5,10 +5,25 @@ from modules.logger import CustomLogger
 
 
 class AudioProcessing:
+    """Class for processing audio files"""
+
     def __init__(self, logger: CustomLogger) -> None:
+        """Constructor
+
+        Args:
+            logger (CustomLogger): logger instance
+        """
         self.logger = logger
 
     def convert_to_mp3(self, file_path: str) -> tuple[int, str]:
+        """Convert audio file to mp3 format
+
+        Args:
+            file_path (str): Path to audio file
+
+        Returns:
+            tuple[int, str]: tuple containing status code and path to new file
+        """
         audio = AudioSegment.from_ogg(file_path)
 
         # save to mp3
@@ -24,7 +39,15 @@ class AudioProcessing:
         return 200, new_path
 
     def to_chunks(self, file_path: str, user_id: int) -> int:
+        """Split audio file into chunks
 
+        Args:
+            file_path (str): Path to audio file
+            user_id (int): User id
+
+        Returns:
+            int: status code
+        """
         os.mkdir(f"data/chunks/{user_id}")
 
         try:

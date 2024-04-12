@@ -5,16 +5,36 @@ from modules.logger import CustomLogger
 class PricesRoute:
 
     def __init__(self, bot: telebot.TeleBot, logger: CustomLogger) -> None:  # type: ignore
+        """
+        Initializes the PricesRoute instance.
+
+        Args:
+            bot (telebot.TeleBot): The Telegram bot instance.
+            logger (CustomLogger): The logger instance.
+        """
         self.bot = bot
         self.logger = logger
 
+        # Handler for the '/prices' command
         @bot.message_handler(commands=["prices"])
         def prices(message: telebot.types.Message) -> None:  # type: ignore
+            """
+            Handler method for the '/prices' command.
+
+            Args:
+                message (telebot.types.Message): The message object.
+            """
             self.__prices(message)
 
+        # Log route initialization
         self.logger.info("Prices route initialized.", "server")
 
     def __prices(self, message: telebot.types.Message) -> None:  # type: ignore
+        """Send the prices information to the user.
+
+        Args:
+            message (telebot.types.Message): The message object.
+        """
         self.bot.send_message(
             message.chat.id,
             "Цены на генерацию конспектов по длине аудиофайла:\n"

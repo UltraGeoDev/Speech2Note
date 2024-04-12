@@ -1,22 +1,53 @@
-import telebot  # type: ignore
+import telebot
 from modules.logger import CustomLogger
 from data.user_database import UserDatabase
 
 
 class TokensRoute:
-    def __init__(self, bot: telebot.TeleBot, logger: CustomLogger, user_database: UserDatabase) -> None:  # type: ignore
+    """
+    Route handling user requests related to tokens.
+    """
+
+    def __init__(  # type: ignore
+        self, bot: telebot.TeleBot, logger: CustomLogger, user_database: UserDatabase
+    ) -> None:
+        """
+        Initialize TokensRoute.
+
+        Args:
+            bot (telebot.TeleBot): The telebot instance.
+            logger (CustomLogger): The logger instance.
+            user_database (UserDatabase): The user database instance.
+        """
         self.bot = bot
         self.logger = logger
         self.database = user_database
 
         @bot.message_handler(commands=["tokens"])
         def tokens(message: telebot.types.Message) -> None:  # type: ignore
+            """
+            Handler for /tokens command.
+
+            Args:
+                message (telebot.types.Message): The message object received from the user.
+
+            Returns:
+                None
+            """
             self.__tokens(message)
 
         self.logger.info("Tokens route initialized.", "server")
 
     def __tokens(self, message: telebot.types.Message) -> None:  # type: ignore
+        """
+        Handle /tokens command.
 
+        Args:
+            message (telebot.types.Message): The message object received from the user.
+
+        Returns:
+            None
+        """
         code, user = self.database.get_user(message.chat.id)
 
         if code != 200:

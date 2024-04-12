@@ -3,17 +3,32 @@ import logging
 
 class CustomLogger:
     """
-    Класс для создания логгеров для различных типов логов
+    Class for creating loggers for different types of logs
+
+    The class creates three loggers:
+        - user_logger - for user-related logs
+        - openai_logger - for OpenAI-related logs
+        - server_logger - for server-related logs
+
+    Each logger logs to a separate file:
+        - user.log
+        - openai.log
+        - server.log
+
+    Each logger has a DEBUG level and a FileHandler that appends to the corresponding file.
     """
 
     def __init__(self) -> None:
         """
-        Инициализация логгеров
-        args: None
-        returns: None
+        Initialization of loggers
+
+        Args:
+            None
+        Returns:
+            None
         """
 
-        # Создание логгера для пользовательских логов
+        # Creating a logger for user-related logs
         self.user_logger = logging.getLogger("user")
         self.user_logger.setLevel(logging.INFO)
         user_file_handler = logging.FileHandler("logs/user.log")
@@ -22,7 +37,7 @@ class CustomLogger:
         )
         self.user_logger.addHandler(user_file_handler)
 
-        # Создание логгера для логов OpenAI
+        # Creating a logger for OpenAI-related logs
         self.openai_logger = logging.getLogger("openai")
         self.openai_logger.setLevel(logging.INFO)
         openai_file_handler = logging.FileHandler("logs/openai.log")
@@ -31,7 +46,7 @@ class CustomLogger:
         )
         self.openai_logger.addHandler(openai_file_handler)
 
-        # Создание логгера для серверных логов
+        # Creating a logger for server-related logs
         self.server_logger = logging.getLogger("server")
         self.server_logger.setLevel(logging.INFO)
         server_file_handler = logging.FileHandler("logs/server.log")
@@ -42,9 +57,13 @@ class CustomLogger:
 
     def info(self, message: str, log_type: str) -> None:
         """
-        Метод для логгирования информационных сообщений
-        args: message (str), log_type (str)
-        returns: None
+        Method for logging informational messages
+
+        Args:
+            message (str): message to log
+            log_type (str): type of the log. Can be 'user', 'openai', or 'server'
+        Returns:
+            None
         """
 
         if log_type == "user":
@@ -60,9 +79,13 @@ class CustomLogger:
 
     def error(self, message: str, log_type: str) -> None:
         """
-        Метод для логгирования ошибок
-        args: message (str), log_type (str)
-        returns: None
+        Method for logging errors
+
+        Args:
+            message (str): message to log
+            log_type (str): type of the log. Can be 'user', 'openai', or 'server'
+        Returns:
+            None
         """
 
         if log_type == "user":
