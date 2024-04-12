@@ -1,7 +1,7 @@
 import time
 from modules.request import Request
 from modules.logger import CustomLogger
-from typing import Callable
+from typing import Callable, Optional
 
 
 class Queue:
@@ -15,7 +15,10 @@ class Queue:
     """
 
     def __init__(
-        self, timeout: int, logger: CustomLogger, processing_function: Callable
+        self,
+        timeout: int,
+        logger: CustomLogger,
+        processing_function: Optional[Callable] = None,
     ) -> None:
         """
         Create a new request queue.
@@ -86,12 +89,13 @@ class Queue:
         while True:
             if self.__queue:
                 item = self.get()
-                self.__processing_function(item)
+                if self.__processing_function is not None:
+                    self.__processing_function(item)
                 self.__logger.info(f"Request {item.request_type} processed.", "server")
             time.sleep(self.__timeout)
 
     @property
-    def processing_function(self) -> Callable:
+    def processing_function(self) -> Optional[Callable]:
         """
         Get the processing function.
 

@@ -42,7 +42,7 @@ if not all(
     raise ValueError("Missing environment variables.")
 
 # Create request queue
-queue = Queue(timeout=10, logger=logger, processing_function=lambda x: x)
+queue = Queue(timeout=10, logger=logger)
 
 # Create user database instance
 database = UserDatabase(supabase_url, supabase_key, logger)
