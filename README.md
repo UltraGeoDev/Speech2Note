@@ -1,6 +1,7 @@
 # Speech2Note
 ## Version 1.0.0
 
+
 ## Описание бота
 
 Бот *Speech2Note* позволяет создать конспект из аудиофайла.
@@ -64,3 +65,4 @@ docker compose up -d
 Почта для связи: dev@ultrageopro.ru
 
 Телеграм: [@UltraGeoDev](https://t.me/UlraGeoDev)
+## [Ссылка на бота](https://t.me/speech2notes_bot)
