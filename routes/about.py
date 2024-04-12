@@ -46,7 +46,7 @@ class AboutRoute:
             + "Репозиторий: [Speech2Note](https://github.com/Ultrageopro1966/Speech2Note)\n"
             + "Нейросети: [GigaChat](https://developers.sber.ru/)\n"
             + "База данных: [Supabase](https://supabase.io/)\n"
-            + "Разработчик: @UltraGeoPro\n"
+            + "Разработчик: @UltraGeoDev\n"
             + "По всем вопросам можешь смело писать на почту dev@ultrageopro.ru\n"
             + "----------------\n"
             + "Пришли мне аудиофайл, и я помогу тебе создать конспект из него.\n"
