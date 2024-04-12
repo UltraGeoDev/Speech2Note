@@ -2,6 +2,7 @@ configs
 logs
 run.sh
 .vscode/
+ffmpeg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

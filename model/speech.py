@@ -8,7 +8,7 @@ def speech2text(
     base_url = "https://smartspeech.sber.ru/rest/v1/speech:recognize"
     headers = {
         "Authorization": f"Bearer {oauth_token}",
-        "Content-Type": "audio/flac",
+        "Content-Type": "audio/mpeg",
     }
 
     with open(audio_file_path, "rb") as audio_file:

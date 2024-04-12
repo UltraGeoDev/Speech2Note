@@ -15,6 +15,7 @@ postgrest==0.16.2
 psycopg2-binary==2.9.9
 pydantic==2.6.3
 pydantic_core==2.16.3
+pydub==0.25.1
 pyTelegramBotAPI==4.16.1
 python-dateutil==2.9.0.post0
 realtime==1.0.3

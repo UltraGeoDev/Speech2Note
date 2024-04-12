@@ -1,4 +1,3 @@
-import threading
 import time
 from modules.request import Request
 from modules.logger import CustomLogger
@@ -10,41 +9,41 @@ class Queue:
         self, timeout: int, logger: CustomLogger, processing_function: Callable
     ) -> None:
         self.__queue: list[Request] = []
-        self.__lock = threading.Lock()
         self.__timeout = timeout
         self.__logger = logger
         self.__processing_function = processing_function
 
+    def user_in_queue(self, user_id: int, request_type: str) -> bool:
+        for item in self.__queue:
+            if item.user_id == user_id and item.request_type == request_type:
+                return True
+        return False
+
     def put(self, item: Request) -> None:
-        self.__lock.acquire()
         self.__queue.append(item)
-        self.__lock.release()
         self.__logger.info(f"Request {item.request_type} added to queue.", "server")
 
     def get(self) -> Request:
-        self.__lock.acquire()
         item = self.__queue.pop(0)
-        self.__lock.release()
         self.__logger.info(f"Request {item.request_type} removed from queue.", "server")
         return item
 
-    def run(self) -> None:
-        queue_thread = threading.Thread(target=self.__run)
-
     def __len__(self) -> int:
-        self.__lock.acquire()
         length = len(self.__queue)
-        self.__lock.release()
         return length
 
-    def __run(self) -> None:
+    def run(self) -> None:
         while True:
-            self.__lock.acquire()
             if self.__queue:
                 item = self.get()
-                self.__lock.release()
                 self.__processing_function(item)
                 self.__logger.info(f"Request {item.request_type} processed.", "server")
-            else:
-                self.__lock.release()
             time.sleep(self.__timeout)
+
+    @property
+    def processing_function(self) -> Callable:
+        return self.__processing_function
+
+    @processing_function.setter
+    def processing_function(self, processing_function: Callable) -> None:
+        self.__processing_function = processing_function
