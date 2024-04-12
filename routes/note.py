@@ -65,7 +65,7 @@ class MainRoute:
         )
 
         if self.request_queue.user_in_queue(user_id, "to_text") or os.path.exists(
-            f"chunks/{user_id}"
+            f"data/chunks/{user_id}"
         ):
             self.bot.send_message(
                 user_id,
@@ -145,7 +145,7 @@ class MainRoute:
         result = ""
 
         audio = self.bot.get_file(request.file_id)
-        file_path = f"audio/{user.id}.ogg"
+        file_path = f"data/audio/{user.id}.ogg"
         price = self.__get_price(request.duration)
 
         if price > user.tokens:
@@ -167,16 +167,16 @@ class MainRoute:
         if code != 200:
             return 500, None
 
-        for filename in os.listdir(f"chunks/{request.user_id}"):
+        for filename in os.listdir(f"data/chunks/{request.user_id}"):
             code, chunk_result = speech2text(
-                s2t_token, f"chunks/{request.user_id}/{filename}", self.logger
+                s2t_token, f"data/chunks/{request.user_id}/{filename}", self.logger
             )
             if code != 200:
                 return 500, None
             result += chunk_result
 
-        shutil.rmtree(f"chunks/{request.user_id}")
-        with open(f"texts/{user.id}.txt", "w") as f:
+        shutil.rmtree(f"data/chunks/{request.user_id}")
+        with open(f"data/texts/{user.id}.txt", "w") as f:
             f.write(result)
             del result
 
@@ -190,7 +190,7 @@ class MainRoute:
             user_id=request.user_id,
             request_type="to_note",
             duration=request.duration,
-            file_id=f"texts/{user.id}.txt",
+            file_id=f"data/texts/{user.id}.txt",
         )
         self.request_queue.put(new_request)
 
@@ -211,7 +211,7 @@ class MainRoute:
             return 500, ""
 
         os.remove(request.file_id)
-        result_path = f"results/{user.id}_{uuid.uuid4()}.md"
+        result_path = f"data/results/{user.id}_{uuid.uuid4()}.md"
         with open(result_path, "w") as f:
             f.write(result)
 

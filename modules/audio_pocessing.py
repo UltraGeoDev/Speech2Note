@@ -25,14 +25,14 @@ class AudioProcessing:
 
     def to_chunks(self, file_path: str, user_id: int) -> int:
 
-        os.mkdir(f"chunks/{user_id}")
+        os.mkdir(f"data/chunks/{user_id}")
 
         try:
             audio = AudioSegment.from_mp3(file_path)
             chunks = split_on_silence(audio, min_silence_len=500, silence_thresh=-40)
 
             for ind, chunk in enumerate(chunks):
-                chunk.export(f"chunks/{user_id}/{ind}.mp3", format="mp3")
+                chunk.export(f"data/chunks/{user_id}/{ind}.mp3", format="mp3")
 
             os.remove(file_path)
             self.logger.info(f"Converted {file_path} to chunks.", "server")
