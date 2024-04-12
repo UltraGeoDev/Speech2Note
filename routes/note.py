@@ -74,6 +74,10 @@ class MainRoute:
             return 25
         return 50
 
+    @staticmethod
+    def split_string(string: str, length: int) -> list[str]:
+        return [string[i : i + length] for i in range(0, len(string), length)]
+
     def __note(self, message: telebot.types.Message) -> int:  # type: ignore
         """
         Process audio in chat and send request to the queue.
@@ -287,6 +291,7 @@ class MainRoute:
         """
 
         t2n_token = get_token(self.t2n_auth_data, "GIGACHAT_API_PERS")
+        result = ""
 
         with open("data/instructions.txt", "r") as f:
             instructions = f.read()
@@ -294,9 +299,15 @@ class MainRoute:
         with open(request.file_id, "r") as f:
             text = f.read()
 
-        code, result = text2note(t2n_token, text, instructions, self.logger)
-        if code != 200:
-            return 500, ""
+        text_substrings = self.split_string(text, 4096)
+
+        for text_substring in text_substrings:
+            code, result_substring = text2note(
+                t2n_token, text_substring, instructions, self.logger
+            )
+            if code != 200:
+                return 500, ""
+            result += result_substring
 
         os.remove(request.file_id)
         result_path = f"data/results/{user.id}_{uuid.uuid4()}"
