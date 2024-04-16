@@ -51,11 +51,6 @@ T2N_AUTH_DATA=<your_t2n_auth_data>
 - Для получения API ключа для Supabase воспользуйтесь [Supabase](https://supabase.com/docs)
 - Для получения API ключа для GigaChat воспользуйтесь [GigaChat](https://developers.sber.ru/)
 
-Также необходимо создать папку `logs` с файлами:
-- `user.log` - логи о пользователях
-- `openai.log` - логи о работе с нейронными сетями
-- `server.log` - логи о работе сервера/бота
-
 Далее запустите бота с помощю команды
 ```bash
 docker compose up -d
