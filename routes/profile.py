@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from logging import Logger
 
-    import telebot  # type: ignore[import-not-found]
+    import telebot  # type: ignore[import-untyped]
 
     from data.user_database import UserDatabase
 
@@ -88,7 +88,6 @@ class ProfileRoute:
                 "---------------\n"
                 "Посмотреть профиль /profile\n"
                 "Получить токены /tokens\n"
-                "Посмотреть цены /prices\n"
                 "Информация о боте /about\n"
                 "---------------",
             )
@@ -105,7 +104,6 @@ class ProfileRoute:
             "Пришли мне аудиофайл, и я помогу тебе создать конспект из него.\n"
             "---------------\n"
             "Получить токены /tokens\n"
-            "Посмотреть цены /prices\n"
             "Информация о боте /about\n"
             "---------------",
         )

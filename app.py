@@ -5,7 +5,7 @@ import os
 import threading
 import warnings
 
-import telebot  # type: ignore[import-not-found]
+import telebot  # type: ignore[import-untyped]
 
 from data.user_database import UserDatabase
 
@@ -13,7 +13,6 @@ from data.user_database import UserDatabase
 from modules.request_queue import Queue
 from routes.about import AboutRoute
 from routes.note import MainRoute
-from routes.prices import PricesRoute
 from routes.profile import ProfileRoute
 
 # Importing route handlers
@@ -56,7 +55,6 @@ bot = telebot.TeleBot(telegram_bot_token)
 StartRoute(bot=bot, logger=logger, user_database=database)
 ProfileRoute(bot=bot, logger=logger, user_database=database)
 TokensRoute(bot=bot, logger=logger, user_database=database)
-PricesRoute(bot=bot, logger=logger)
 AboutRoute(bot=bot, logger=logger)
 
 # Create main route handler instance
@@ -75,7 +73,7 @@ queue.processing_function = main_route.process_request
 if __name__ == "__main__":
     # Log app start
     log_info = "App started."
-    logger.info(log_info, "server")
+    logger.info(log_info, extra={"message_type": "server"})
 
     # Start bot and queue threads
     bot_thread = threading.Thread(target=bot.infinity_polling)

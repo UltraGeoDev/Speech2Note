@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from supabase import Client, create_client  # type: ignore[import-not-found]
+from supabase import Client, create_client  # type: ignore[import-untyped]
 
 from modules.user import User
 

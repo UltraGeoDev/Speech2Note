@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import telebot  # type: ignore[import-untyped]
+
 if TYPE_CHECKING:
     from logging import Logger
-
-    import telebot  # type: ignore[import-not-found]
 
     from data.user_database import UserDatabase
 
@@ -84,22 +84,38 @@ class TokensRoute:
                 "---------------\n"
                 "Посмотреть профиль /profile\n"
                 "Получить токены /tokens\n"
-                "Посмотреть цены /prices\n"
                 "Информация о боте /about\n"
                 "---------------",
             )
             return
 
+        button1 = telebot.types.InlineKeyboardButton(
+            "💸 10 токенов = 30₽",
+            callback_data="10_tokens",
+        )
+        button2 = telebot.types.InlineKeyboardButton(
+            "💸 50 токенов = 150₽",
+            callback_data="50_tokens",
+        )
+        button3 = telebot.types.InlineKeyboardButton(
+            "💸 100 токенов = 290₽ (-3%)",
+            callback_data="100_tokens",
+        )
+        button4 = telebot.types.InlineKeyboardButton(
+            "💸 300 токенов = 830₽ (-7%)",
+            callback_data="300_tokens",
+        )
+        button5 = telebot.types.InlineKeyboardButton(
+            "💸 1000 токенов = 2700₽ (-10%)",
+            callback_data="300_tokens",
+        )
+
+        keyboard = telebot.types.InlineKeyboardMarkup(
+            [[button1], [button2], [button3], [button4], [button5]],
+        )
+
         self.bot.send_message(
             message.chat.id,
-            "На данном этапе разработки бота дополнительные токены можно получить только написав разработчику бота на почту:\n"  # noqa: E501, RUF001
-            "dev@ultrageopro.ru\n"
-            "---------------\n"
-            "Приносим извинения за доставленные неудобства.\n"
-            "Пришли мне аудиофайл, и я помогу тебе создать конспект из него.\n"
-            "---------------\n"
-            "Посмотреть профиль /profile\n"
-            "Посмотреть цены /prices\n"
-            "Информация о боте /about\n"  # noqa: RUF001
-            "---------------",
+            "Купить токены можно с помощью бановской карты.\nГлавное меню /start",  # noqa: RUF001
+            reply_markup=keyboard,
         )

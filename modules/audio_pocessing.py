@@ -1,11 +1,12 @@
 """Audio Processing module."""
+
 from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pydub import AudioSegment  # type: ignore[import-not-found]
-from pydub.silence import split_on_silence  # type: ignore[import-not-found]
+from pydub import AudioSegment  # type: ignore[import-untyped]
+from pydub.silence import split_on_silence  # type: ignore[import-untyped]
 
 if TYPE_CHECKING:
     from logging import Logger
@@ -46,7 +47,7 @@ class AudioProcessing:
             new_path = file_path.replace(".ogg", ".mp3")
             audio.export(new_path, format="mp3")
             Path(file_path).unlink()
-            self.logger.info("converted to mp3", extra={"message_type":"server"})
+            self.logger.info("converted to mp3", extra={"message_type": "server"})
         except Exception:  # noqa: BLE001
             self.logger.info("converted to mp3 error", "server")  # noqa: PLE1205
             return 500, ""
@@ -77,7 +78,7 @@ class AudioProcessing:
                 chunk.export(f"data/chunks/{user_id}/{ind}.mp3", format="mp3")
 
             Path(file_path).unlink()
-            self.logger.info("Converted to chunks.", extra={"message_type":"server"})
+            self.logger.info("Converted to chunks.", extra={"message_type": "server"})
         except Exception as e:  # noqa: BLE001
             self.logger.error(str(e), "server")  # noqa: TRY400
             return 500

@@ -11,7 +11,7 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import md2pdf  # type: ignore[import-not-found]
+import md2pdf  # type: ignore[import-untyped]
 
 from model.oauth import get_token
 from model.speech import speech2text
@@ -22,7 +22,7 @@ from modules.request import Request
 if TYPE_CHECKING:
     from logging import Logger
 
-    import telebot  # type: ignore[import-not-found]
+    import telebot  # type: ignore[import-untyped]
 
     from data.user_database import UserDatabase
     from modules.request_queue import Queue
