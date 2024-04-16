@@ -116,6 +116,7 @@ class TokensRoute:
 
         self.bot.send_message(
             message.chat.id,
-            "Купить токены можно с помощью бановской карты.\nГлавное меню /start",  # noqa: RUF001
+            "**Меню приобретения токенов.**\nГлавное меню /start\nДоступные покупки:",  # noqa: RUF001
             reply_markup=keyboard,
+            parse_mode="Markdown",
         )

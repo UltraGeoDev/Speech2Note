@@ -195,7 +195,7 @@ class MainRoute:
         if code == tokens_error:
             self.bot.send_message(
                 request.user_id,
-                "Недостаточно средств. Попробуйте еще раз.",
+                "Недостаточно средств.\nКупить токены можно в меню /tokens",  # noqa: RUF001
             )
             self.logger.info(
                 "Not enough tokens. User ID",
