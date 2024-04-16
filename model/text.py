@@ -1,17 +1,46 @@
-import requests  # type: ignore
-from modules.logger import CustomLogger
+"""Text module."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+import requests  # type: ignore[import-untyped]
+
+if TYPE_CHECKING:
+    from logging import Logger
 
 
 def text2note(
-    oauth_token: str, text: str, instruction: str, logger: CustomLogger
+    oauth_token: str,
+    text: str,
+    instruction: str,
+    logger: Logger,
 ) -> tuple[int, str]:
+    """Text to note.
 
+    Params.
+    ------
+    oauth_token: str
+        oauth token
+    text: str
+        text
+    instruction: str
+        instruction
+    logger: CustomLogger
+        logger
+
+    Returns
+    -------
+    tuple[int, str]: status code and text
+
+    """
     messages = [
         {"role": "system", "content": instruction},
         {"role": "user", "content": text},
     ]
 
     base_url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
+    ok_code = 200
 
     headers = {
         "Content-Type": "application/json",
@@ -24,10 +53,16 @@ def text2note(
         "messages": messages,
     }
 
-    response = requests.post(base_url, headers=headers, json=body, verify=False)
-    if response.status_code != 200:
+    response = requests.post(
+        base_url,
+        headers=headers,
+        json=body,
+        verify=False,  # noqa: S501
+        timeout=10,
+    )
+    if response.status_code != ok_code:
         logger.error(str(response.json()), "openai")
         return response.status_code, ""
 
-    logger.info("Text to note successful.", "openai")
+    logger.info("Text to note successful.", extra={"message_type": "text2note"})
     return 200, response.json()["choices"][0]["message"]["content"]

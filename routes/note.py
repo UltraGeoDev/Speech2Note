@@ -1,45 +1,47 @@
-"""
-Main route for bot.
+"""Main route for bot.
 
 Handles voice messages and processes requests.
 """
 
-import telebot  # type: ignore
-from modules.logger import CustomLogger
-from data.user_database import UserDatabase
+from __future__ import annotations
 
-from modules.request import Request
-from modules.audio_pocessing import AudioProcessing
-from modules.request_queue import Queue
-from modules.user import User
+import os
+import shutil
+import uuid
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import md2pdf  # type: ignore[import-not-found]
 
 from model.oauth import get_token
 from model.speech import speech2text
 from model.text import text2note
+from modules.audio_pocessing import AudioProcessing
+from modules.request import Request
 
-from typing import Optional
-import os, shutil
-import uuid
-import md2pdf  # type: ignore
+if TYPE_CHECKING:
+    from logging import Logger
+
+    import telebot  # type: ignore[import-not-found]
+
+    from data.user_database import UserDatabase
+    from modules.request_queue import Queue
+    from modules.user import User
 
 
 class MainRoute:
-    """
-    Class for handling voice messages and processing requests.
-    """
+    """Class for handling voice messages and processing requests."""
 
-    def __init__(  # type: ignore
-        self,
+    def __init__(  # type: ignore[no-any-unimported]  # noqa: PLR0913
+        self: MainRoute,
         bot: telebot.TeleBot,
         s2t_auth_data: str,
         t2n_auth_data: str,
         user_database: UserDatabase,
-        logger: CustomLogger,
+        logger: Logger,
         request_queue: Queue,
     ) -> None:
-        """
-        Initializes MainRoute.
-        """
+        """Create MainRoute."""
         self.bot = bot
         self.logger = logger
         self.database = user_database
@@ -49,44 +51,57 @@ class MainRoute:
         self.audio_pocessing = AudioProcessing(logger)
 
         @bot.message_handler(content_types=["voice"])
-        def note(message: telebot.types.Message) -> None:  # type: ignore
-            """
-            Handles voice messages and sends them to the queue.
-            """
+        def note(message: telebot.types.Message) -> None:  # type: ignore[no-any-unimported]
+            """Voice messages and sends them to the queue."""
             self.__note(message)
 
-        self.logger.info("Main route initialized.", "server")
+        self.logger.info("Main route initialized.", extra={"message_type": "server"})
 
     @staticmethod
     def __get_price(duration: int) -> int:
-        """
-        Calculates price for note based on duration.
-        """
-        if duration < 1:
+        """Calculate price for note based on duration."""
+        first_level = 1
+        second_level = 5
+        third_level = 10
+        fourth_level = 20
+        fifth_level = 40
+
+        if duration < first_level:
             return 1
-        if duration < 5:
+        if duration < second_level:
             return 5
-        if duration < 10:
+        if duration < third_level:
             return 10
-        if duration < 20:
+        if duration < fourth_level:
             return 15
-        if duration < 40:
+        if duration < fifth_level:
             return 25
         return 50
 
     @staticmethod
     def split_string(string: str, length: int) -> list[str]:
+        """Split string.
+
+        Args:
+        ----
+            string (str): input string
+            length (int): length of the substring
+
+        Returns:
+        -------
+            list[str]: list of substrings
+
+        """
         return [string[i : i + length] for i in range(0, len(string), length)]
 
-    def __note(self, message: telebot.types.Message) -> int:  # type: ignore
-        """
-        Process audio in chat and send request to the queue.
+    def __note(self: MainRoute, message: telebot.types.Message) -> int:  # type: ignore[no-any-unimported]
+        """Process audio in chat and send request to the queue.
+
         Return 200 if successful.
         Return 500 if error.
         Return 404 if user not found or user already in queue.
         """
-
-        voice_message: telebot.types.Voice = message.voice  # type: ignore
+        voice_message: telebot.types.Voice = message.voice  # type: ignore[no-any-unimported]
         user_id = message.chat.id
 
         # get duration for note
@@ -100,30 +115,33 @@ class MainRoute:
         str_time = "<1 минуты" if time == 0 else f"{time} минут"
 
         to_text_request = Request(
-            "to_text", str(voice_message.file_id), message.from_user.id, duration
+            "to_text",
+            str(voice_message.file_id),
+            message.from_user.id,
+            duration,
         )
 
-        if self.request_queue.user_in_queue(user_id, "to_text") or os.path.exists(
-            f"data/chunks/{user_id}"
+        if (
+            self.request_queue.user_in_queue(user_id, "to_text")
+            or Path(f"data/chunks/{user_id}").exists()
         ):
             self.bot.send_message(
                 user_id,
-                "Извините, вы уже в очереди.\nПожалуйста, подождите.\nГлавное меню /start",
+                "Извините, вы уже в очереди.\nПожалуйста, подождите.\nГлавное меню /start",  # noqa: RUF001, E501
             )
-            self.logger.info("User already in queue.", "server")
+            self.logger.info("User already in queue.", extra={"message_type": "server"})
             return 404
 
         self.request_queue.put(to_text_request)
         self.bot.send_message(
             user_id,
-            f"Вы добавлены в очередь. Запрос обрабатывается. Пожалуйста, подождите.\nПримерное время ожидания: {str_time}",
+            f"Вы добавлены в очередь. Запрос обрабатывается. Пожалуйста, подождите.\nПримерное время ожидания: {str_time}",  # noqa: E501, RUF001
         )
 
         return 200
 
-    def process_request(self, request: Request) -> int:  # type: ignore
-        """
-        Process request and return response.
+    def process_request(self: MainRoute, request: Request) -> int:  # type: ignore[no-any-unimported]
+        """Process request and return response.
 
         This method checks if the user with the specified ID exists in the database.
         If the user does not exist, the method sends an error message to the user and returns 404.
@@ -138,25 +156,34 @@ class MainRoute:
         The method then returns 200.
 
         Args:
+        ----
             request (Request): Request to process.
 
         Returns:
+        -------
             int: Response code.
-        """
 
+        """  # noqa: E501
         code, user = self.database.get_user(request.user_id)
+
+        ok_code = 200
+        tokens_error = 403
+        server_error = 500
+
         price = self.__get_price(request.duration)
 
-        if code != 200:
+        if code != ok_code:
             self.bot.send_message(
-                request.user_id, "Произошла ошибка. Попробуйте еще раз."
+                request.user_id,
+                "Произошла ошибка. Попробуйте еще раз.",
             )
             return 500
 
         if user is None:
-            self.logger.info(f"User not found. User ID: {request.user_id}.", "server")
+            self.logger.info("User not found.", extra={"message_type": "server"})
             self.bot.send_message(
-                request.user_id, "Произошла ошибка. Попробуйте еще раз."
+                request.user_id,
+                "Произошла ошибка. Попробуйте еще раз.",
             )
             return 404
 
@@ -165,57 +192,68 @@ class MainRoute:
         else:
             code, result_path = self.__to_note(request, user)
 
-        if code == 403:
+        if code == tokens_error:
             self.bot.send_message(
-                request.user_id, "Недостаточно средств. Попробуйте еще раз."
+                request.user_id,
+                "Недостаточно средств. Попробуйте еще раз.",
             )
             self.logger.info(
-                f"Not enough tokens. User ID: {request.user_id}.", "server"
+                "Not enough tokens. User ID",
+                extra={"message_type": "server"},
             )
-        elif code == 500:
+        elif code == server_error:
             self.logger.info(
-                f"Error converting to mp3. User ID: {request.user_id}.",
-                "server",
+                "Error converting to mp3. User ID:",
+                extra={"message_type": "server"},
             )
             self.bot.send_message(
-                request.user_id, "Произошла ошибка. Попробуйте еще раз."
+                request.user_id,
+                "Произошла ошибка. Попробуйте еще раз.",
             )
-        elif code == 200 and request.request_type == "to_note":
-            md_document = open(f"{result_path}.md", "rb")
-            pdf_document = open(f"{result_path}.pdf", "rb")
+        elif code == ok_code and request.request_type == "to_note":
+            with Path(f"{result_path}.md").open("rb") as md_document:
+                self.bot.send_document(request.user_id, md_document)
 
-            self.bot.send_document(request.user_id, md_document)
-            self.bot.send_document(request.user_id, pdf_document)
+            with Path(f"{result_path}.pdf").open("rb") as pdf_document:
+                self.bot.send_document(request.user_id, pdf_document)
 
             self.bot.send_message(
-                request.user_id, f"Потрачено {price} токенов\nГлавное меню /start"
+                request.user_id,
+                f"Потрачено {price} токенов\nГлавное меню /start",  # noqa: RUF001
             )
 
             self.database.decrease_tokens(user.id, price)
-            self.logger.info(f"Note sent. User ID: {request.user_id}.", "server")
+            self.logger.info("Note sent", extra={"message_type": "server"})
 
-            os.remove(f"{result_path}.md")
-            os.remove(f"{result_path}.pdf")
+            Path(f"{result_path}.md").unlink()
+            Path(f"{result_path}.pdf").unlink()
 
             return 200
 
-        return code  # type: ignore
+        return code  # type: ignore[no-any-return]
 
-    def __to_text(self, request: Request, user: User) -> tuple[int, Optional[Request]]:
-        """
-        Converts voice message to text and passes it to note route.
+    def __to_text(
+        self: MainRoute,
+        request: Request,
+        user: User,
+    ) -> tuple[int, Request | None]:
+        """Convert voice message to text and passes it to note route.
 
         This method downloads the file, converts it to mp3, divides it into chunks,
         converts each chunk to text, and then sends the text to the note route.
 
         Args:
+        ----
             request (Request): Request to process.
             user (User): User who sent the request.
 
         Returns:
+        -------
             tuple[int, Optional[Request]]: Response code and new request to process.
+
         """
         s2t_token = get_token(self.s2t_auth_data, "SALUTE_SPEECH_PERS")
+        ok_code = 200
         result = ""
 
         audio = self.bot.get_file(request.file_id)
@@ -227,39 +265,42 @@ class MainRoute:
             return 403, None
 
         file_data: bytes = self.bot.download_file(audio.file_path)
-        with open(file_path, "wb") as file:
+        with Path(file_path).open("wb") as file:
             file.write(file_data)
 
-        self.logger.info(f"Note downloaded. User ID: {request.user_id}.", "server")
+        self.logger.info("Note downloaded.", extra={"message_type": "server"})
 
         # Convert to mp3
         code, new_file_path = self.audio_pocessing.convert_to_mp3(file_path)
-        if code != 200:
+        if code != ok_code:
             return 500, None
 
         # Convert to chunks
         code = self.audio_pocessing.to_chunks(new_file_path, request.user_id)
-        if code != 200:
+        if code != ok_code:
             return 500, None
 
         # Convert each chunk to text
         for filename in os.listdir(f"data/chunks/{request.user_id}"):
             code, chunk_result = speech2text(
-                s2t_token, f"data/chunks/{request.user_id}/{filename}", self.logger
+                s2t_token,
+                f"data/chunks/{request.user_id}/{filename}",
+                self.logger,
             )
-            if code != 200:
+            if code != ok_code:
                 return 500, None
             result += chunk_result
 
         shutil.rmtree(f"data/chunks/{request.user_id}")
-        with open(f"data/texts/{user.id}.txt", "w") as f:
+        with Path(f"data/texts/{user.id}.txt").open("w") as f:
             f.write(result)
             del result
 
-        self.logger.info(f"Speech to text done. User ID: {request.user_id}.", "server")
+        self.logger.info("Speech to text done.", extra={"message_type": "server"})
 
         self.bot.send_message(
-            request.user_id, "Получен текст.\nНачинается создание конспекта..."
+            request.user_id,
+            "Получен текст.\nНачинается создание конспекта...",  # noqa: RUF001
         )
 
         # Create new request to note route
@@ -274,45 +315,50 @@ class MainRoute:
 
         return 200, None
 
-    def __to_note(self, request: Request, user: User) -> tuple[int, str]:
-        """
-        Converts text to note using GigaChat's text-to-note API.
+    def __to_note(self: MainRoute, request: Request, user: User) -> tuple[int, str]:
+        """Convert text to note using GigaChat's text-to-note API.
 
         This method opens instructions.txt, reads it, opens the text file specified in the request,
         reads it, and sends it to GigaChat's text-to-note API. If the request is successful,
         the method creates a new file with the note and deletes the text file.
 
         Args:
+        ----
             request (Request): Request to process.
             user (User): User who sent the request.
 
         Returns:
+        -------
             tuple[int, str]: Response code and path to the new file with the note.
-        """
 
+        """  # noqa: E501
         t2n_token = get_token(self.t2n_auth_data, "GIGACHAT_API_PERS")
         result = ""
+        ok_code = 200
 
-        with open("data/instructions.txt", "r") as f:
+        with Path("data/instructions.txt").open() as f:
             instructions = f.read()
 
-        with open(request.file_id, "r") as f:
+        with Path(request.file_id).open() as f:
             text = f.read()
 
         text_substrings = self.split_string(text, 4096)
 
         for text_substring in text_substrings:
             code, result_substring = text2note(
-                t2n_token, text_substring, instructions, self.logger
+                t2n_token,
+                text_substring,
+                instructions,
+                self.logger,
             )
-            if code != 200:
+            if code != ok_code:
                 return 500, ""
             result += result_substring
 
-        os.remove(request.file_id)
+        Path(request.file_id).unlink()
         result_path = f"data/results/{user.id}_{uuid.uuid4()}"
 
-        with open(f"{result_path}.md", "w") as f:
+        with Path(f"{result_path}.md").open("w") as f:
             f.write(result)
 
         md2pdf.core.md2pdf(f"{result_path}.pdf", result)

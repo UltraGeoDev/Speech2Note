@@ -1,59 +1,75 @@
-import telebot
-from modules.logger import CustomLogger
-from data.user_database import UserDatabase
+"""Tokens route module."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    import telebot  # type: ignore[import-not-found]
+
+    from data.user_database import UserDatabase
 
 
 class TokensRoute:
-    """
-    Route handling user requests related to tokens.
-    """
+    """Route handling user requests related to tokens."""
 
-    def __init__(  # type: ignore
-        self, bot: telebot.TeleBot, logger: CustomLogger, user_database: UserDatabase
+    def __init__(  # type: ignore[no-any-unimported]
+        self: TokensRoute,
+        bot: telebot.TeleBot,
+        logger: Logger,
+        user_database: UserDatabase,
     ) -> None:
-        """
-        Initialize TokensRoute.
+        """Create TokensRoute.
 
         Args:
+        ----
             bot (telebot.TeleBot): The telebot instance.
             logger (CustomLogger): The logger instance.
             user_database (UserDatabase): The user database instance.
+
         """
         self.bot = bot
         self.logger = logger
         self.database = user_database
 
         @bot.message_handler(commands=["tokens"])
-        def tokens(message: telebot.types.Message) -> None:  # type: ignore
-            """
-            Handler for /tokens command.
+        def tokens(message: telebot.types.Message) -> None:  # type: ignore[no-any-unimported]
+            """Tokens command.
 
             Args:
+            ----
                 message (telebot.types.Message): The message object received from the user.
 
             Returns:
+            -------
                 None
-            """
+
+            """  # noqa: E501
             self.__tokens(message)
 
-        self.logger.info("Tokens route initialized.", "server")
+        self.logger.info("Tokens route initialized.", extra={"message_type": "server"})
 
-    def __tokens(self, message: telebot.types.Message) -> None:  # type: ignore
-        """
-        Handle /tokens command.
+    def __tokens(self: TokensRoute, message: telebot.types.Message) -> None:  # type: ignore[no-any-unimported]
+        """Handle /tokens command.
 
         Args:
+        ----
             message (telebot.types.Message): The message object received from the user.
 
         Returns:
+        -------
             None
+
         """
         code, user = self.database.get_user(message.chat.id)
+        ok_code = 200
 
-        if code != 200:
+        if code != ok_code:
             self.bot.send_message(
                 message.chat.id,
-                "Произошла ошибка. Попробуйте ещё раз позже.\nМы уже работаем над этим.",
+                "Произошла ошибка. Попробуйте ещё раз позже.\nМы уже работаем над этим.",  # noqa: RUF001, E501
             )
 
         if user is None:
@@ -61,29 +77,29 @@ class TokensRoute:
             self.bot.send_message(
                 message.chat.id,
                 f"Привет, {message.from_user.username}!\n"
-                + "---------------\n"
-                + "Ты не можешь получить токены, потому что ты не был зарегистрирован.\n"
-                + "Но у меня хорошие новости! Я уже тебя зарагестрировал!\n"
-                + "Пришли мне аудиофайл, и я помогу тебе создать конспект из него.\n"
-                + "---------------\n"
-                + "Посмотреть профиль /profile\n"
-                + "Получить токены /tokens\n"
-                + "Посмотреть цены /prices\n"
-                + "Информация о боте /about\n"
-                + "---------------",
+                "---------------\n"
+                "Ты не можешь получить токены, потому что ты не был зарегистрирован.\n"
+                "Но у меня хорошие новости! Я уже тебя зарагестрировал!\n"
+                "Пришли мне аудиофайл, и я помогу тебе создать конспект из него.\n"
+                "---------------\n"
+                "Посмотреть профиль /profile\n"
+                "Получить токены /tokens\n"
+                "Посмотреть цены /prices\n"
+                "Информация о боте /about\n"
+                "---------------",
             )
             return
 
         self.bot.send_message(
             message.chat.id,
-            "На данном этапе разработки бота дополнительные токены можно получить только написав разработчику бота на почту:\n"
-            + "dev@ultrageopro.ru\n"
-            + "---------------\n"
-            + "Приносим извинения за доставленные неудобства.\n"
-            + "Пришли мне аудиофайл, и я помогу тебе создать конспект из него.\n"
-            + "---------------\n"
-            + "Посмотреть профиль /profile\n"
-            + "Посмотреть цены /prices\n"
-            + "Информация о боте /about\n"
-            + "---------------",
+            "На данном этапе разработки бота дополнительные токены можно получить только написав разработчику бота на почту:\n"  # noqa: E501, RUF001
+            "dev@ultrageopro.ru\n"
+            "---------------\n"
+            "Приносим извинения за доставленные неудобства.\n"
+            "Пришли мне аудиофайл, и я помогу тебе создать конспект из него.\n"
+            "---------------\n"
+            "Посмотреть профиль /profile\n"
+            "Посмотреть цены /prices\n"
+            "Информация о боте /about\n"  # noqa: RUF001
+            "---------------",
         )

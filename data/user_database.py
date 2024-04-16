@@ -1,52 +1,72 @@
-from supabase import Client, create_client
-from modules.logger import CustomLogger
-from typing import Optional
+"""User database module."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from supabase import Client, create_client  # type: ignore[import-not-found]
+
 from modules.user import User
+
+if TYPE_CHECKING:
+    from logging import Logger
 
 
 class UserDatabase:
     """Class for interacting with the user database.
 
-    Attributes:
+    Attributes
+    ----------
         client (supabase.Client): The Supabase client for the database.
         logger (modules.logger.CustomLogger): The logger for the bot.
+
     """
 
     def __init__(
-        self, supabase_url: str, supabase_key: str, logger: CustomLogger
+        self: UserDatabase,
+        supabase_url: str,
+        supabase_key: str,
+        logger: Logger,
     ) -> None:
         """Create a new UserDatabase instance.
 
         Args:
+        ----
             supabase_url (str): The URL of the Supabase database.
             supabase_key (str): The API key of the Supabase database.
             logger (modules.logger.CustomLogger): The logger for the bot.
+
         """
-        self.client: Client = create_client(supabase_url, supabase_key)
+        self.client: Client = create_client(supabase_url, supabase_key)  # type: ignore[no-any-unimported]
         self.logger = logger
 
-    def new_user(self, user_id: int, username: str) -> None:
+    def new_user(self: UserDatabase, user_id: int, username: str) -> None:
         """Insert a new user into the database.
 
         Args:
+        ----
             user_id (int): The ID of the user.
             username (str): The name of the user.
+
         """
         try:
             self.client.table("users").insert(
-                {"user_id": str(user_id), "name": username}
+                {"user_id": str(user_id), "name": username},
             ).execute()
         except Exception as e:
-            self.logger.error(str(e), "user")
+            self.logger.exception(str(e), "user")  # noqa: TRY401
 
-    def get_user(self, user_id: int) -> [int, Optional[User]]:
+    def get_user(self: UserDatabase, user_id: int) -> [int, User | None]:
         """Get a user from the database.
 
         Args:
+        ----
             user_id (int): The ID of the user.
 
         Returns:
+        -------
             (int, Optional[User]): The status code and the user if found, else None.
+
         """
         try:
             user_data = (
@@ -57,20 +77,24 @@ class UserDatabase:
                 .data
             )
             user = User(**user_data[0]) if user_data else None
-            return 200, user
-        except Exception as e:
-            self.logger.error(str(e), "user")
+        except Exception:
+            self.logger.exception("Error in get_user", extra={"message_type": "user"})
             return 400, None
+        else:
+            return 200, user
 
-    def increase_tokens(self, user_id: int, tokens: int) -> int:
+    def increase_tokens(self: UserDatabase, user_id: int, tokens: int) -> int:
         """Increase the tokens of a user.
 
         Args:
+        ----
             user_id (int): The ID of the user.
             tokens (int): The amount of tokens to increase by.
 
         Returns:
+        -------
             int: The status code.
+
         """
         try:
             current_tokens = (
@@ -80,22 +104,30 @@ class UserDatabase:
                 .execute()
             ).data[0]["tokens"]
             self.client.table("users").update({"tokens": current_tokens + tokens}).eq(
-                "user_id", str(user_id)
+                "user_id",
+                str(user_id),
             ).execute()
-            return 200
-        except Exception as e:
-            self.logger.error(str(e), "user")
+        except Exception:
+            self.logger.exception(
+                "Error in increase_tokens",
+                extra={"message_type": "user"},
+            )
             return 400
+        else:
+            return 200
 
-    def decrease_tokens(self, user_id: int, tokens: int) -> int:
+    def decrease_tokens(self: UserDatabase, user_id: int, tokens: int) -> int:
         """Decrease the tokens of a user.
 
         Args:
+        ----
             user_id (int): The ID of the user.
             tokens (int): The amount of tokens to decrease by.
 
         Returns:
+        -------
             int: The status code.
+
         """
         try:
             current_tokens = (
@@ -105,9 +137,14 @@ class UserDatabase:
                 .execute()
             ).data[0]["tokens"]
             self.client.table("users").update({"tokens": current_tokens - tokens}).eq(
-                "user_id", str(user_id)
+                "user_id",
+                str(user_id),
             ).execute()
-            return 200
-        except Exception as e:
-            self.logger.error(str(e), "user")
+        except Exception:
+            self.logger.exception(
+                "Error in decrease_tokens",
+                extra={"message_type": "user"},
+            )
             return 400
+        else:
+            return 200

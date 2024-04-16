@@ -1,30 +1,31 @@
-import telebot  # type: ignore
+"""Main app."""
+
+import logging
 import os
 import threading
-import sys
-import logging
+import warnings
+
+import telebot  # type: ignore[import-not-found]
+
+from data.user_database import UserDatabase
 
 # Importing custom modules
-from modules.logger import CustomLogger
-from data.user_database import UserDatabase
 from modules.request_queue import Queue
-from modules.request import Request
+from routes.about import AboutRoute
+from routes.note import MainRoute
+from routes.prices import PricesRoute
+from routes.profile import ProfileRoute
 
 # Importing route handlers
 from routes.start import StartRoute
-from routes.profile import ProfileRoute
-from routes.prices import PricesRoute
 from routes.tokens import TokensRoute
-from routes.about import AboutRoute
-from routes.note import MainRoute
-
-import warnings
 
 # Disable warnings
 warnings.filterwarnings("ignore")
 
-# Create logger
-logger = CustomLogger()
+# Configure logging
+logging.basicConfig(format="%(message_type)s - %(message)s", level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 # Get environment variables
@@ -36,10 +37,11 @@ t2n_auth_data = os.environ.get("T2N_AUTH_DATA", "")
 
 # Check if all required environment variables are provided
 if not all(
-    [telegram_bot_token, supabase_url, supabase_key, s2t_auth_data, t2n_auth_data]
+    [telegram_bot_token, supabase_url, supabase_key, s2t_auth_data, t2n_auth_data],
 ):
-    logger.error("Missing environment variables.", "server")
-    raise ValueError("Missing environment variables.")
+    error_message = "Missing environment variables."
+    logger.error(error_message, "server")
+    raise ValueError(error_message)
 
 # Create request queue
 queue = Queue(timeout=10, logger=logger)
@@ -72,7 +74,8 @@ queue.processing_function = main_route.process_request
 
 if __name__ == "__main__":
     # Log app start
-    logger.info("App started.", "server")
+    log_info = "App started."
+    logger.info(log_info, "server")
 
     # Start bot and queue threads
     bot_thread = threading.Thread(target=bot.infinity_polling)
