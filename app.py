@@ -7,6 +7,7 @@ import warnings
 
 import telebot  # type: ignore[import-untyped]
 
+# kassa
 from data.user_database import UserDatabase
 
 # Importing custom modules
@@ -33,10 +34,18 @@ supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 s2t_auth_data = os.environ.get("S2T_AUTH_DATA", "")
 t2n_auth_data = os.environ.get("T2N_AUTH_DATA", "")
+shop_provider = os.environ.get("SHOP_PROVIDER", "")
 
 # Check if all required environment variables are provided
 if not all(
-    [telegram_bot_token, supabase_url, supabase_key, s2t_auth_data, t2n_auth_data],
+    [
+        telegram_bot_token,
+        supabase_url,
+        supabase_key,
+        s2t_auth_data,
+        t2n_auth_data,
+        shop_provider,
+    ],
 ):
     error_message = "Missing environment variables."
     logger.error(error_message, "server")
@@ -48,14 +57,22 @@ queue = Queue(timeout=10, logger=logger)
 # Create user database instance
 database = UserDatabase(supabase_url, supabase_key, logger)
 
+
 # Create Telegram bot instance
 bot = telebot.TeleBot(telegram_bot_token)
 
+
 # Register route handlers
+TokensRoute(
+    bot=bot,
+    logger=logger,
+    user_database=database,
+    provider_token=shop_provider,
+)
 StartRoute(bot=bot, logger=logger, user_database=database)
 ProfileRoute(bot=bot, logger=logger, user_database=database)
-TokensRoute(bot=bot, logger=logger, user_database=database)
 AboutRoute(bot=bot, logger=logger)
+
 
 # Create main route handler instance
 main_route = MainRoute(

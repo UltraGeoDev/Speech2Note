@@ -20,6 +20,7 @@ class TokensRoute:
         bot: telebot.TeleBot,
         logger: Logger,
         user_database: UserDatabase,
+        provider_token: str,
     ) -> None:
         """Create TokensRoute.
 
@@ -28,11 +29,14 @@ class TokensRoute:
             bot (telebot.TeleBot): The telebot instance.
             logger (CustomLogger): The logger instance.
             user_database (UserDatabase): The user database instance.
+            provider_token (str): The provider token.
 
         """
         self.bot = bot
         self.logger = logger
         self.database = user_database
+        self.provider_token = provider_token
+        self.register_callbacks()
 
         @bot.message_handler(commands=["tokens"])
         def tokens(message: telebot.types.Message) -> None:  # type: ignore[no-any-unimported]
@@ -48,6 +52,29 @@ class TokensRoute:
 
             """  # noqa: E501
             self.__tokens(message)
+
+        @bot.message_handler(content_types=["successful_payment"])
+        def successful_payment(message: telebot.types.Message) -> None:  # type: ignore[no-any-unimported]
+            """Successful payment callback.
+
+            Args:
+            ----
+                message (telebot.types.Message): The message object received from the user.
+
+            Returns:
+            -------
+                None
+
+            """  # noqa: E501
+            self.__successful_payment(message)
+
+        @bot.pre_checkout_query_handler(func=lambda _: True)
+        def pre_checkout(query: telebot.types.PreCheckoutQuery) -> None:  # type: ignore[no-any-unimported]
+            """Pre-checkout callback.
+
+            query (telebot.types.PreCheckoutQuery): The pre-checkout query object.
+            """
+            bot.answer_pre_checkout_query(query.id, ok=True)
 
         self.logger.info("Tokens route initialized.", extra={"message_type": "server"})
 
@@ -90,24 +117,24 @@ class TokensRoute:
             return
 
         button1 = telebot.types.InlineKeyboardButton(
-            "💸 10 токенов = 30₽",
-            callback_data="10_tokens",
+            "💸 20 токенов = 60₽",
+            callback_data="0",
         )
         button2 = telebot.types.InlineKeyboardButton(
             "💸 50 токенов = 150₽",
-            callback_data="50_tokens",
+            callback_data="1",
         )
         button3 = telebot.types.InlineKeyboardButton(
             "💸 100 токенов = 290₽ (-3%)",
-            callback_data="100_tokens",
+            callback_data="2",
         )
         button4 = telebot.types.InlineKeyboardButton(
             "💸 300 токенов = 830₽ (-7%)",
-            callback_data="300_tokens",
+            callback_data="3",
         )
         button5 = telebot.types.InlineKeyboardButton(
             "💸 1000 токенов = 2700₽ (-10%)",
-            callback_data="300_tokens",
+            callback_data="4",
         )
 
         keyboard = telebot.types.InlineKeyboardMarkup(
@@ -120,3 +147,89 @@ class TokensRoute:
             reply_markup=keyboard,
             parse_mode="Markdown",
         )
+
+    def __successful_payment(self: TokensRoute, message: telebot.types.Message) -> None:  # type: ignore[no-any-unimported]
+        """Handle successful payment callback.
+
+        Args:
+        ----
+            message (telebot.types.Message): The message object received from the user.
+
+        Returns:
+        -------
+            None
+
+        """
+        ind = int(message.successful_payment.invoice_payload)
+        ok_code = 200
+
+        _, amount, tokens = self.__get_price(ind)
+        code = self.database.increase_tokens(message.chat.id, tokens)
+
+        if code != ok_code:
+            self.bot.send_message(
+                message.chat.id,
+                "Произошла ошибка. Попробуйте ещё раз позже.\nМы уже работаем над этим.",  # noqa: RUF001, E501
+            )
+            return
+
+        self.bot.send_message(
+            message.chat.id,
+            f"Ты купил {tokens} токенов за {amount // 100}₽\n"
+            "---------------\n"
+            "Пришли мне аудиофайл, и я помогу тебе создать полноценный конспект из него!\n"  # noqa: E501
+            "---------------\n"
+            "Посмотреть профиль /profile\n"
+            "Информация о боте /about\n"
+            "---------------",
+        )
+
+    def register_callbacks(self: TokensRoute) -> None:
+        """Register callbacks for TokensRoute.
+
+        Args:
+        ----
+            None
+
+        Returns:
+        -------
+            None
+
+        """
+
+        @self.bot.callback_query_handler(func=lambda _: True)
+        def payment_callbacks(call: telebot.types.CallbackQuery) -> None:  # type: ignore[no-any-unimported]
+            """Payment callbacks.
+
+            Args:
+            ----
+                call (telebot.types.CallbackQuery):
+                    The callback query object received from the user.
+
+            Returns:
+            -------
+                None
+
+            """
+            ind = int(call.data)
+            text, amount, tokens = self.__get_price(ind)
+            self.bot.send_invoice(
+                call.message.chat.id,
+                title="Покупка токенов",
+                description=text,
+                invoice_payload=str(ind),
+                provider_token=self.provider_token,
+                currency="RUB",
+                prices=[telebot.types.LabeledPrice(label=text, amount=amount)],
+            )
+
+    @staticmethod
+    def __get_price(ind: int) -> [str, int]:
+        prices = [
+            ("💸 20 токенов", 6000, 20),
+            ("💸 50 токенов", 15000, 50),
+            ("💸 100 токенов (-3%)", 29000, 100),
+            ("💸 300 токенов (-7%)", 83000, 300),
+            ("💸 1000 токенов (-10%)", 270000, 1000),
+        ]
+        return prices[ind]
