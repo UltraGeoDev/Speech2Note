@@ -14,6 +14,7 @@ from data.user_database import UserDatabase
 from modules.request_queue import Queue
 from routes.about import AboutRoute
 from routes.note import MainRoute
+from routes.prices import PricesRoute
 from routes.profile import ProfileRoute
 
 # Importing route handlers
@@ -72,6 +73,7 @@ TokensRoute(
 StartRoute(bot=bot, logger=logger, user_database=database)
 ProfileRoute(bot=bot, logger=logger, user_database=database)
 AboutRoute(bot=bot, logger=logger)
+PricesRoute(bot=bot, logger=logger)
 
 
 # Create main route handler instance
