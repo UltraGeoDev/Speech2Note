@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 import telebot  # type: ignore[import-untyped]
@@ -69,12 +70,28 @@ class TokensRoute:
             self.__successful_payment(message)
 
         @bot.pre_checkout_query_handler(func=lambda _: True)
-        def pre_checkout(query: telebot.types.PreCheckoutQuery) -> None:  # type: ignore[no-any-unimported]
+        def pre_checkout(pre_checkout_query: telebot.types.PreCheckoutQuery) -> None:  # type: ignore[no-any-unimported]
             """Pre-checkout callback.
 
-            query (telebot.types.PreCheckoutQuery): The pre-checkout query object.
+            pre_checkout_query (types.PreCheckoutQuery): The pre-checkout query object.
             """
-            bot.answer_pre_checkout_query(query.id, ok=True)
+            bot.answer_pre_checkout_query(
+                pre_checkout_query.id,
+                ok=True,
+                error_message="Произошла ошибка. Попробуйте ещё раз позже.",
+            )
+
+        @bot.shipping_query_handler(func=lambda _: True)
+        def shipping(shipping_query: telebot.types.ShippingQuery) -> None:  # type: ignore[no-any-unimported]
+            """Shipping callback.
+
+            shipping_query (types.ShippingQuery): The shipping query object.
+            """
+            bot.answer_shipping_query(
+                shipping_query.id,
+                ok=True,
+                error_message="Произошла ошибка. Попробуйте ещё раз позже.",
+            )
 
         self.logger.info("Tokens route initialized.", extra={"message_type": "server"})
 
@@ -106,12 +123,12 @@ class TokensRoute:
                 f"Привет, {message.from_user.username}!\n"
                 "---------------\n"
                 "Ты не можешь получить токены, потому что ты не был зарегистрирован.\n"
-                "Но у меня хорошие новости! Я уже тебя зарагестрировал!\n"
+                "Но у меня хорошие новости! Я уже тебя зарагестрировал!\n"  # noqa: RUF001
                 "Пришли мне аудиофайл, и я помогу тебе создать конспект из него.\n"
                 "---------------\n"
                 "Посмотреть профиль /profile\n"
                 "Получить токены /tokens\n"
-                "Информация о боте /about\n"
+                "Информация о боте /about\n"  # noqa: RUF001
                 "---------------",
             )
             return
@@ -180,7 +197,7 @@ class TokensRoute:
             "Пришли мне аудиофайл, и я помогу тебе создать полноценный конспект из него!\n"  # noqa: E501
             "---------------\n"
             "Посмотреть профиль /profile\n"
-            "Информация о боте /about\n"
+            "Информация о боте /about\n"  # noqa: RUF001
             "---------------",
         )
 
@@ -213,6 +230,24 @@ class TokensRoute:
             """
             ind = int(call.data)
             text, amount, tokens = self.__get_price(ind)
+
+            # Create receipt for payment
+            receipt = {
+                "items": [
+                    {
+                        "description": text,
+                        "quantity": 1,
+                        "amount": {
+                            "value": str(amount // 100) + ".00",
+                            "currency": "RUB",
+                        },
+                        "vat_code": 1,
+                    },
+                ],
+            }
+            receipt_to_json = f'{{"receipt": {json.dumps(receipt)}}}'
+
+            # Send invoice
             self.bot.send_invoice(
                 call.message.chat.id,
                 title="Покупка токенов",
@@ -221,10 +256,13 @@ class TokensRoute:
                 provider_token=self.provider_token,
                 currency="RUB",
                 prices=[telebot.types.LabeledPrice(label=text, amount=amount)],
+                need_email=True,
+                send_email_to_provider=True,
+                provider_data=receipt_to_json,
             )
 
     @staticmethod
-    def __get_price(ind: int) -> [str, int]:
+    def __get_price(ind: int) -> [str, int, int]:
         prices = [
             ("💸 20 токенов", 6000, 20),
             ("💸 50 токенов", 15000, 50),
