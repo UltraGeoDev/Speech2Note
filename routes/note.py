@@ -199,6 +199,7 @@ class MainRoute:
                     "Возможно, данная запись не содержит ценной информации."
                     "Главное меню /start",
                 )
+                return 404
 
         if code == tokens_error:
             self.bot.send_message(
