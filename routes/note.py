@@ -343,17 +343,20 @@ class MainRoute:
             text = f.read()
 
         text_substrings = self.split_string(text, 4096)
+        messages: list[dict[str, str]] = []
 
-        for text_substring in text_substrings:
-            code, result_substring = text2note(
+        for ind, text_substring in enumerate(text_substrings):
+
+            code, messages = text2note(
                 t2n_token,
-                text_substring,
                 instructions,
                 self.logger,
+                text_substring,
+                messages=None if not ind else messages,
             )
             if code != ok_code:
                 return 500, ""
-            result += result_substring
+            result += messages[-1]["content"]
 
         Path(request.file_id).unlink()
         result_path = f"data/results/{user.id}_{uuid.uuid4()}"

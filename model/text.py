@@ -12,10 +12,11 @@ if TYPE_CHECKING:
 
 def text2note(
     oauth_token: str,
-    text: str,
     instruction: str,
     logger: Logger,
-) -> tuple[int, str]:
+    text: str,
+    messages: list[dict[str, str]] | None = None,
+) -> tuple[int, list[dict[str, str]]]:
     """Text to note.
 
     Params.
@@ -34,10 +35,14 @@ def text2note(
     tuple[int, str]: status code and text
 
     """
-    messages = [
-        {"role": "system", "content": instruction},
-        {"role": "user", "content": text},
-    ]
+    messages = (
+        [
+            {"role": "system", "content": instruction},
+            {"role": "user", "content": text},
+        ]
+        if messages is None
+        else messages
+    )
 
     base_url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
     ok_code = 200
@@ -62,7 +67,8 @@ def text2note(
     )
     if response.status_code != ok_code:
         logger.error(str(response.json()), "openai")
-        return response.status_code, ""
+        return response.status_code, []
 
     logger.info("Text to note successful.", extra={"message_type": "text2note"})
-    return 200, response.json()["choices"][0]["message"]["content"]
+    messages.append(response.json()["choices"][0]["message"])
+    return 200, messages
