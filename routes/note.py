@@ -190,7 +190,15 @@ class MainRoute:
         if request.request_type == "to_text":
             code, req = self.__to_text(request, user)
         else:
-            code, result_path = self.__to_note(request, user)
+            try:
+                code, result_path = self.__to_note(request, user)
+            except md2pdf.exceptions.ValidationError:
+                self.bot.send_message(
+                    request.user_id,
+                    "Произошла ошибка."
+                    "Возможно, данная запись не содержит ценной информации."
+                    "Главное меню /start",
+                )
 
         if code == tokens_error:
             self.bot.send_message(
