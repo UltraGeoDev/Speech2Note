@@ -40,7 +40,7 @@ class UserDatabase:
         self.client: Client = create_client(supabase_url, supabase_key)  # type: ignore[no-any-unimported]
         self.logger = logger
 
-    def new_user(self: UserDatabase, user_id: int, username: str) -> None:
+    def new_user(self: UserDatabase, user_id: int, username: str | None) -> None:
         """Insert a new user into the database.
 
         Args:
@@ -51,7 +51,10 @@ class UserDatabase:
         """
         try:
             self.client.table("users").insert(
-                {"user_id": str(user_id), "name": username},
+                {
+                    "user_id": str(user_id),
+                    "name": username if username is not None else "unknown user",
+                },
             ).execute()
         except Exception as e:
             self.logger.exception(str(e), "user")  # noqa: TRY401
