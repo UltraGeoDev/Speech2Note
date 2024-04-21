@@ -40,7 +40,7 @@ class AudioProcessing:
             tuple[int, str]: status code and path to mp3
 
         """
-        audio = AudioSegment.from_ogg(file_path)
+        audio = AudioSegment.from_file(file_path)
 
         # save to mp3
         try:
