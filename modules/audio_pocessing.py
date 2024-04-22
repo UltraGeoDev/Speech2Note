@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pydub import AudioSegment  # type: ignore[import-untyped]
-from pydub.silence import split_on_silence  # type: ignore[import-untyped]
 
 if TYPE_CHECKING:
     from logging import Logger
@@ -72,11 +71,9 @@ class AudioProcessing:
 
         try:
             audio = AudioSegment.from_mp3(file_path)
-            chunks = split_on_silence(audio, min_silence_len=500, silence_thresh=-55)
-
-            for ind, chunk in enumerate(chunks):
+            for ind, start_time in enumerate(range(0, len(audio), 45000)):
+                chunk = audio[start_time : start_time + 45000]
                 chunk.export(f"data/chunks/{user_id}/{ind}.mp3", format="mp3")
-
             Path(file_path).unlink()
             self.logger.info("Converted to chunks.", extra={"message_type": "server"})
         except Exception as e:  # noqa: BLE001
