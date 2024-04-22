@@ -130,7 +130,7 @@ class MainRoute:
         ):
             self.bot.send_message(
                 user_id,
-                "Извините, вы уже в очереди.\nПожалуйста, подождите.\nГлавное меню /start",  # noqa: RUF001, E501
+                "Извините, вы уже в очереди.\nПoжaлyйcтa, подождите.\nГлaвнoe меню /start",  # noqa: E501
             )
             self.logger.info("User already in queue.", extra={"message_type": "server"})
             return 404
@@ -177,8 +177,8 @@ class MainRoute:
         if price == -1:
             self.bot.send_message(
                 request.user_id,
-                "К сожалению, аудио слишком длинное.\n"  # noqa: RUF001
-                "Длина записи должна быть не меньше часа.\n"
+                "K сожалению, аудио слишком длинное.\n"
+                "Длина записи должна быть не больше часа.\n"
                 "Главное меню /start",
             )
             return 403
@@ -215,7 +215,7 @@ class MainRoute:
         if code == tokens_error:
             self.bot.send_message(
                 request.user_id,
-                "Недостаточно средств.\nКупить токены можно в меню /tokens",  # noqa: RUF001
+                "Недостаточно средств.\nKyпить токены можно в меню /tokens",
             )
             self.logger.info(
                 "Not enough tokens. User ID",
@@ -239,7 +239,7 @@ class MainRoute:
 
             self.bot.send_message(
                 request.user_id,
-                f"Потрачено {price} токенов\nГлавное меню /start",  # noqa: RUF001
+                f"Потрачено {price} токенов\nГлaвнoe меню /start",
             )
 
             self.database.decrease_tokens(user.id, price)
@@ -320,7 +320,7 @@ class MainRoute:
 
         self.bot.send_message(
             request.user_id,
-            "Получен текст.\nНачинается создание конспекта...",  # noqa: RUF001
+            "Получен текст.\nHaчинaeтcя создание конспекта...",
         )
 
         # Create new request to note route

@@ -70,7 +70,7 @@ class ProfileRoute:
             # Inform the user about the error
             self.bot.send_message(
                 message.chat.id,
-                "Произошла ошибка. Попробуйте ещё раз позже.\nМы уже работаем над этим.",  # noqa: RUF001, E501
+                "Произошла ошибка. Попробуйте ещё раз позже.\nMы уже работаем над этим.",
             )
 
         # If the user is not found in the database
@@ -99,13 +99,13 @@ class ProfileRoute:
             message.chat.id,
             f"Привет, {user.name}!\n"
             "---------------\n"
-            f"У тебя {user.tokens} токенов.\n"  # noqa: RUF001
+            f"Y тебя {user.tokens} токенов.\n"
             f"Аккаунт создан {user.created_at}\n"
             "---------------\n"
-            "Пришли мне голосовое сообщение, и я помогу тебе создать конспект из него.\n"
+            "Пришли мне голосовое сообщение, и я помогу тебе создать конспект из него.\n"  # noqa: E501
             "---------------\n"
             "Получить токены /tokens\n"
-            "Информация о боте /about\n"
+            "Информация o боте /about\n"
             "Посмотреть цены /prices\n"
             "---------------",
         )

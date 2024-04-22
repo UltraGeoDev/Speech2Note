@@ -63,7 +63,7 @@ class AboutRoute:
             "Посмотреть профиль /profile\n"
             "Получить токены /tokens\n"
             "Посмотреть цены /prices\n"
-            "Информация о боте /about\n"  # noqa: RUF001
+            "Информация o боте /about\n"
             "---------------",
             parse_mode="Markdown",
         )
