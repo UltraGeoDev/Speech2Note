@@ -58,13 +58,14 @@ class MainRoute:
         self.logger.info("Main route initialized.", extra={"message_type": "server"})
 
     @staticmethod
-    def __get_price(duration: int) -> int:
+    def __get_price(duration: int) -> int:  # noqa: PLR0911
         """Calculate price for note based on duration."""
         first_level = 1
         second_level = 5
         third_level = 10
         fourth_level = 20
         fifth_level = 40
+        max_level = 60
 
         if duration < first_level:
             return 1
@@ -76,6 +77,8 @@ class MainRoute:
             return 15
         if duration < fifth_level:
             return 25
+        if duration > max_level:
+            return -1
         return 50
 
     @staticmethod
@@ -171,6 +174,14 @@ class MainRoute:
         server_error = 500
 
         price = self.__get_price(request.duration)
+        if price == -1:
+            self.bot.send_message(
+                request.user_id,
+                "К сожалению, аудио слишком длинное.\n"  # noqa: RUF001
+                "Длина записи должна быть не меньше часа.\n"
+                "Главное меню /start",
+            )
+            return 403
 
         if code != ok_code:
             self.bot.send_message(
@@ -195,8 +206,8 @@ class MainRoute:
             except md2pdf.exceptions.ValidationError:
                 self.bot.send_message(
                     request.user_id,
-                    "Произошла ошибка."
-                    "Возможно, данная запись не содержит ценной информации."
+                    "Произошла ошибка.\n"
+                    "Возможно, данная запись не содержит ценной информации.\n"
                     "Главное меню /start",
                 )
                 return 404
