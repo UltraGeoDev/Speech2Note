@@ -95,7 +95,10 @@ class MainRoute:
             list[str]: list of substrings
 
         """
-        return [string[i : i + length] for i in range(0, len(string), length)]
+        result = []
+        for i in range(0, len(string), length):
+            result.append(string[i : i + length])  # noqa: PERF401
+        return result
 
     def __note(self: MainRoute, message: telebot.types.Message) -> int:  # type: ignore[no-any-unimported]
         """Process audio in chat and send request to the queue.
@@ -363,22 +366,18 @@ class MainRoute:
             text = f.read()
 
         text_substrings = self.split_string(text, 4096)
-        messages: list[dict[str, str]] = []
+        print(text_substrings)
+        for text_substring in text_substrings:
 
-        for ind, text_substring in enumerate(text_substrings):
-
-            substring_instructions = "Продолжение:\n" + text_substring
-
-            code, messages = text2note(
+            code, ans = text2note(
                 t2n_token,
                 instructions,
                 self.logger,
-                substring_instructions,
-                messages=None if not ind else messages,
+                text_substring,
             )
             if code != ok_code:
                 return 500, ""
-            result += messages[-1]["content"]
+            result += ans
 
         Path(request.file_id).unlink()
         result_path = f"data/results/{user.id}_{uuid.uuid4()}"

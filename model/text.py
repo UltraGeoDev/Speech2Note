@@ -15,8 +15,7 @@ def text2note(
     instruction: str,
     logger: Logger,
     text: str,
-    messages: list[dict[str, str]] | None = None,
-) -> tuple[int, list[dict[str, str]]]:
+) -> tuple[int, str]:
     """Text to note.
 
     Params.
@@ -35,14 +34,10 @@ def text2note(
     tuple[int, str]: status code and text
 
     """
-    messages = (
-        [
-            {"role": "system", "content": instruction},
-            {"role": "user", "content": text},
-        ]
-        if messages is None
-        else messages
-    )
+    messages = [
+        {"role": "system", "content": instruction},
+        {"role": "user", "content": text},
+    ]
 
     base_url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 
@@ -66,8 +61,7 @@ def text2note(
     )
     if not response.ok:
         logger.error(str(response.json()), "openai")
-        return response.status_code, []
+        return response.status_code, ""
 
     logger.info("Text to note successful.", extra={"message_type": "text2note"})
-    messages.append(response.json()["choices"][0]["message"])
-    return 200, messages
+    return 200, response.json()["choices"][0]["message"]["content"]

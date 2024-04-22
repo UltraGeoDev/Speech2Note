@@ -54,4 +54,4 @@ def speech2text(
         return response.status_code, ""
 
     logger.info("Speech to text successful.", extra={"message_type": "openai"})
-    return 200, " ".join(response.json()["result"])
+    return 200, " ".join(response.json()["result"]) + "\n"

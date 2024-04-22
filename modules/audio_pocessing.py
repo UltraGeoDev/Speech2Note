@@ -72,7 +72,7 @@ class AudioProcessing:
 
         try:
             audio = AudioSegment.from_mp3(file_path)
-            chunks = split_on_silence(audio, min_silence_len=500, silence_thresh=-40)
+            chunks = split_on_silence(audio, min_silence_len=500, silence_thresh=-55)
 
             for ind, chunk in enumerate(chunks):
                 chunk.export(f"data/chunks/{user_id}/{ind}.mp3", format="mp3")
