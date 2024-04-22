@@ -367,11 +367,13 @@ class MainRoute:
 
         for ind, text_substring in enumerate(text_substrings):
 
+            substring_instructions = "Продолжение:\n" + text_substring
+
             code, messages = text2note(
                 t2n_token,
                 instructions,
                 self.logger,
-                text_substring,
+                substring_instructions,
                 messages=None if not ind else messages,
             )
             if code != ok_code:

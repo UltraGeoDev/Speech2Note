@@ -37,7 +37,6 @@ def speech2text(
         "Authorization": f"Bearer {oauth_token}",
         "Content-Type": "audio/mpeg",
     }
-    ok_code = 200
 
     with Path(audio_file_path).open("rb") as audio_file:
         data = audio_file.read()
@@ -50,9 +49,9 @@ def speech2text(
         timeout=10,
     )
 
-    if response.status_code != ok_code:
+    if not response.ok:
         logger.error(str(response.json()), "openai")
         return response.status_code, ""
 
     logger.info("Speech to text successful.", extra={"message_type": "openai"})
-    return ok_code, " ".join(response.json()["result"])
+    return 200, " ".join(response.json()["result"])

@@ -45,7 +45,6 @@ def text2note(
     )
 
     base_url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
-    ok_code = 200
 
     headers = {
         "Content-Type": "application/json",
@@ -65,7 +64,7 @@ def text2note(
         verify=False,  # noqa: S501
         timeout=10,
     )
-    if response.status_code != ok_code:
+    if not response.ok:
         logger.error(str(response.json()), "openai")
         return response.status_code, []
 
