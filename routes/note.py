@@ -366,7 +366,6 @@ class MainRoute:
             text = f.read()
 
         text_substrings = self.split_string(text, 4096)
-        print(text_substrings)
         for text_substring in text_substrings:
 
             code, ans = text2note(
