@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -87,3 +88,25 @@ class AudioProcessing:
             return 500
         else:
             return 200
+
+    def get_audio_duration(
+        self: AudioProcessing,
+        file_path: str,
+        file_data: bytes,
+    ) -> int | None:
+        """Get audio duration in seconds."""
+        path = Path(file_path)
+        filename = "data/duration/" + str(uuid.uuid4()) + path.suffix
+
+        with Path(filename).open("wb") as file:
+            file.write(file_data)
+
+        try:
+            audio = AudioSegment.from_file(filename)
+            duration = audio.duration_seconds
+            Path(filename).unlink()
+        except Exception:  # noqa: BLE001
+            Path(filename).unlink()
+            return None
+        else:
+            return duration // 60  # type: ignore[no-any-return]

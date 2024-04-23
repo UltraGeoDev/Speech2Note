@@ -54,7 +54,7 @@ class MainRoute:
             logger=logger,
         )
 
-        @bot.message_handler(content_types=["voice", "audio"])
+        @bot.message_handler(content_types=["voice", "audio", "document"])
         def note(message: telebot.types.Message) -> None:  # type: ignore[no-any-unimported]
             """Voice messages and sends them to the queue."""
             self.__note(message)
@@ -106,16 +106,39 @@ class MainRoute:
         Return 500 if error.
         Return 404 if user not found or user already in queue or queue is full.
         """
-        audio_message: telebot.types.Voice = message.voice  # type: ignore[no-any-unimported]
         user_id = message.chat.id
-        if audio_message is None:
+
+        # get message data
+        if message.voice is not None:
+            audio_message = message.voice
+            file_name = str(message.chat.id) + ".ogg"
+            duration = audio_message.duration // 60
+            file_id = audio_message.file_id
+        elif message.audio is not None:
             audio_message = message.audio
             file_name = str(message.chat.id) + Path(audio_message.file_name).suffix
-        else:
-            file_name = str(message.chat.id) + ".ogg"
+            duration = audio_message.duration // 60
+            file_id = audio_message.file_id
+        elif message.document is not None:
+            file_name = str(message.chat.id) + Path(message.document.file_name).suffix
+            file_info = self.bot.get_file(message.document.file_id)
+            file_data = self.bot.download_file(file_info.file_path)
 
-        # get duration for note
-        duration = audio_message.duration // 60
+            duration = self.audio_pocessing.get_audio_duration(file_name, file_data)
+            file_id = message.document.file_id
+
+        if duration is None:
+            self.bot.send_message(
+                message.chat.id,
+                "Извини, но я не понимаю, что делать c этим сообщением.\n"
+                "Возможно, формат этого сообщения пока не поддерживается.\n"
+                "Главное меню: /start",
+            )
+            self.logger.info(
+                "Failed to recognize audio message.",
+                extra={"message_type": "server"},
+            )
+            return 500
 
         # get queue length
         queue_len = len(self.request_queue)
@@ -126,7 +149,7 @@ class MainRoute:
 
         to_text_request = Request(
             request_type="to_text",
-            file_id=str(audio_message.file_id),
+            file_id=str(file_id),
             file_name=file_name,
             user_id=message.from_user.id,
             duration=duration,

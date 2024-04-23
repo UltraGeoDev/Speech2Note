@@ -20,6 +20,7 @@ from routes.profile import ProfileRoute
 # Importing route handlers
 from routes.start import StartRoute
 from routes.tokens import TokensRoute
+from routes.unsupported import UnsupportedRoute
 
 # Disable warnings
 warnings.filterwarnings("ignore")
@@ -91,6 +92,9 @@ main_route = MainRoute(
     logger=logger,
     request_queue=queue,
 )
+
+# Register unsupported route handler
+UnsupportedRoute(bot=bot, logger=logger)
 
 # Set queue processing function
 queue.processing_function = main_route.process_request
