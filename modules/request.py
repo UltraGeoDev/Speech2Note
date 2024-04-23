@@ -19,6 +19,7 @@ class Request:
         self: Request,
         request_type: str,
         file_id: str,
+        file_name: str,
         user_id: int,
         duration: int,
     ) -> None:
@@ -28,6 +29,7 @@ class Request:
         ----
             request_type (str): Type of the request.
             file_id (str): ID of the file to process.
+            file_name (str): Name of the file to process.
             user_id (int): ID of the user who sent the request.
             duration (int): Duration of the file in seconds.
 
@@ -41,6 +43,7 @@ class Request:
             raise ValueError(msg)
 
         self.__file_id = file_id
+        self.__file_name = file_name
         self.__user_id = user_id
         self.__request_type = request_type
         self.__duration = duration
@@ -66,6 +69,17 @@ class Request:
 
         """
         return self.__file_id
+
+    @property
+    def file_name(self: Request) -> str:
+        """Return the file name.
+
+        Returns
+        -------
+            str: The file name.
+
+        """
+        return self.__file_name
 
     @property
     def user_id(self: Request) -> int:

@@ -37,6 +37,7 @@ class MainRoute:
         bot: telebot.TeleBot,
         s2t_auth_data: str,
         t2n_auth_data: str,
+        split_timeout: int,
         user_database: UserDatabase,
         logger: Logger,
         request_queue: Queue,
@@ -48,9 +49,12 @@ class MainRoute:
         self.s2t_auth_data = s2t_auth_data
         self.t2n_auth_data = t2n_auth_data
         self.request_queue = request_queue
-        self.audio_pocessing = AudioProcessing(logger)
+        self.audio_pocessing = AudioProcessing(
+            splt_timeout=split_timeout,
+            logger=logger,
+        )
 
-        @bot.message_handler(content_types=["voice"])
+        @bot.message_handler(content_types=["voice", "audio"])
         def note(message: telebot.types.Message) -> None:  # type: ignore[no-any-unimported]
             """Voice messages and sends them to the queue."""
             self.__note(message)
@@ -60,24 +64,19 @@ class MainRoute:
     @staticmethod
     def __get_price(duration: int) -> int:  # noqa: PLR0911
         """Calculate price for note based on duration."""
-        first_level = 1
-        second_level = 5
-        third_level = 10
-        fourth_level = 20
-        fifth_level = 40
-        max_level = 60
+        levels = [1, 5, 10, 20, 40, 60]
 
-        if duration < first_level:
+        if duration < levels[0]:
             return 1
-        if duration < second_level:
+        if duration < levels[1]:
             return 5
-        if duration < third_level:
+        if duration < levels[2]:
             return 10
-        if duration < fourth_level:
+        if duration < levels[3]:
             return 15
-        if duration < fifth_level:
+        if duration < levels[4]:
             return 25
-        if duration > max_level:
+        if duration > levels[5]:
             return -1
         return 50
 
@@ -105,13 +104,18 @@ class MainRoute:
 
         Return 200 if successful.
         Return 500 if error.
-        Return 404 if user not found or user already in queue.
+        Return 404 if user not found or user already in queue or queue is full.
         """
-        voice_message: telebot.types.Voice = message.voice  # type: ignore[no-any-unimported]
+        audio_message: telebot.types.Voice = message.voice  # type: ignore[no-any-unimported]
         user_id = message.chat.id
+        if audio_message is None:
+            audio_message = message.audio
+            file_name = str(message.chat.id) + Path(audio_message.file_name).suffix
+        else:
+            file_name = str(message.chat.id) + ".ogg"
 
         # get duration for note
-        duration = voice_message.duration // 60
+        duration = audio_message.duration // 60
 
         # get queue length
         queue_len = len(self.request_queue)
@@ -121,10 +125,11 @@ class MainRoute:
         str_time = "<1 минуты" if time == 0 else f"{time} минут"
 
         to_text_request = Request(
-            "to_text",
-            str(voice_message.file_id),
-            message.from_user.id,
-            duration,
+            request_type="to_text",
+            file_id=str(audio_message.file_id),
+            file_name=file_name,
+            user_id=message.from_user.id,
+            duration=duration,
         )
 
         if (
@@ -138,10 +143,18 @@ class MainRoute:
             self.logger.info("User already in queue.", extra={"message_type": "server"})
             return 404
 
-        self.request_queue.put(to_text_request)
+        code = self.request_queue.put(to_text_request)
+        if not code:
+            self.bot.send_message(
+                user_id,
+                "Извините, очередь переполнена.\nПoжaлyйcтa, подождите.\nГлaвнoe меню /start",  # noqa: E501
+            )
+            self.logger.info("Queue is full.", extra={"message_type": "server"})
+            return 404
+
         self.bot.send_message(
             user_id,
-            f"Вы добавлены в очередь. Запрос обрабатывается. Пожалуйста, подождите.\nПримерное время ожидания: {str_time}",  # noqa: E501, RUF001
+            f"Вы добавлены в очередь. Запрос обрабатывается. Пожалуйста, подождите.\nПpимepнoe время ожидания: {str_time}",  # noqa: E501
         )
 
         return 200
@@ -280,7 +293,7 @@ class MainRoute:
         result = ""
 
         audio = self.bot.get_file(request.file_id)
-        file_path = f"data/audio/{user.id}.ogg"
+        file_path = f"data/audio/{request.file_name}"
         price = self.__get_price(request.duration)
 
         # Check if user has enough tokens to make the request
@@ -330,8 +343,9 @@ class MainRoute:
         new_request: Request = Request(
             user_id=request.user_id,
             request_type="to_note",
+            file_name=f"data/texts/{user.id}.txt",
             duration=request.duration,
-            file_id=f"data/texts/{user.id}.txt",
+            file_id="",
         )
 
         self.request_queue.put(new_request)
@@ -362,7 +376,7 @@ class MainRoute:
         with Path("data/instructions.txt").open() as f:
             instructions = f.read()
 
-        with Path(request.file_id).open() as f:
+        with Path(request.file_name).open() as f:
             text = f.read()
 
         text_substrings = self.split_string(text, 4096)
@@ -378,7 +392,7 @@ class MainRoute:
                 return 500, ""
             result += ans
 
-        Path(request.file_id).unlink()
+        Path(request.file_name).unlink()
         result_path = f"data/results/{user.id}_{uuid.uuid4()}"
 
         with Path(f"{result_path}.md").open("w") as f:

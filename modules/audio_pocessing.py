@@ -14,17 +14,17 @@ if TYPE_CHECKING:
 class AudioProcessing:
     """Class for processing audio files."""
 
-    def __init__(self: AudioProcessing, logger: Logger) -> None:
+    def __init__(self: AudioProcessing, splt_timeout: int, logger: Logger) -> None:
         """Initialize AudioProcessing.
 
         Params
         ---
         self: AudioProcessing
-            self
         logger: CustomLogger
-            logger
+        splt_timeout: int
         """
         self.logger = logger
+        self.splt_timeout = splt_timeout * 1000
 
     def convert_to_mp3(self: AudioProcessing, file_path: str) -> tuple[int, str]:
         """Get mp3 from ogg.
@@ -40,12 +40,18 @@ class AudioProcessing:
 
         """
         audio = AudioSegment.from_file(file_path)
+        audio_path = Path(file_path)
+        suffix = audio_path.suffix
 
         # save to mp3
         try:
-            new_path = file_path.replace(".ogg", ".mp3")
-            audio.export(new_path, format="mp3")
-            Path(file_path).unlink()
+            audio_path = audio_path.with_suffix(".mp3")
+            audio.export(audio_path, format="mp3")
+
+            if suffix != ".mp3":
+                Path(file_path).unlink()
+
+            new_path = str(audio_path)
             self.logger.info("converted to mp3", extra={"message_type": "server"})
         except Exception:  # noqa: BLE001
             self.logger.info("converted to mp3 error", "server")  # noqa: PLE1205
@@ -71,8 +77,8 @@ class AudioProcessing:
 
         try:
             audio = AudioSegment.from_mp3(file_path)
-            for ind, start_time in enumerate(range(0, len(audio), 45000)):
-                chunk = audio[start_time : start_time + 45000]
+            for ind, start_time in enumerate(range(0, len(audio), self.splt_timeout)):
+                chunk = audio[start_time : start_time + self.splt_timeout]
                 chunk.export(f"data/chunks/{user_id}/{ind}.mp3", format="mp3")
             Path(file_path).unlink()
             self.logger.info("Converted to chunks.", extra={"message_type": "server"})

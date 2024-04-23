@@ -29,13 +29,18 @@ logging.basicConfig(format="%(message_type)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-# Get environment variables
+# Get server variables
 telegram_bot_token = os.environ.get("TELEGRAM_TOKEN", "")
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 s2t_auth_data = os.environ.get("S2T_AUTH_DATA", "")
 t2n_auth_data = os.environ.get("T2N_AUTH_DATA", "")
 shop_provider = os.environ.get("SHOP_PROVIDER", "")
+
+# Get model variables
+split_timeout = int(os.environ.get("SPLIT_TIMEOUT", "45"))
+queue_timeout = int(os.environ.get("QUEUE_TIMEOUT", "10"))
+queue_max_length = int(os.environ.get("QUEUE_MAX_LEN", "20"))
 
 # Check if all required environment variables are provided
 if not all(
@@ -52,8 +57,8 @@ if not all(
     logger.error(error_message, "server")
     raise ValueError(error_message)
 
-# Create request queue
-queue = Queue(timeout=10, logger=logger)
+# Create request queueNone
+queue = Queue(timeout=queue_timeout, max_length=queue_max_length, logger=logger)
 
 # Create user database instance
 database = UserDatabase(supabase_url, supabase_key, logger)
@@ -81,6 +86,7 @@ main_route = MainRoute(
     bot=bot,
     s2t_auth_data=s2t_auth_data,
     t2n_auth_data=t2n_auth_data,
+    split_timeout=split_timeout,
     user_database=database,
     logger=logger,
     request_queue=queue,

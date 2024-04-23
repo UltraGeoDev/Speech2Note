@@ -25,6 +25,7 @@ class Queue:
     def __init__(
         self: Queue,
         timeout: int,
+        max_length: int,
         logger: Logger,
         processing_function: Callable | None = None,
     ) -> None:
@@ -33,12 +34,14 @@ class Queue:
         Args:
         ----
             timeout (int): Timeout in seconds for the queue's run method.
+            max_length (int): Maximum length of the queue.
             logger (CustomLogger): Logger instance for logging.
             processing_function (Callable): Function to be called to process a request.
 
         """
         self.__queue: list[Request] = []
         self.__timeout = timeout
+        self.__max_length = max_length
         self.__logger = logger
         self.__processing_function = processing_function
 
@@ -60,7 +63,7 @@ class Queue:
                 return True
         return False
 
-    def put(self: Queue, item: Request) -> None:
+    def put(self: Queue, item: Request) -> bool:
         """Add a request to the queue.
 
         Args:
@@ -68,11 +71,15 @@ class Queue:
             item (Request): Request to be added.
 
         """
+        if len(self.__queue) >= self.__max_length:
+            return False
+
         self.__queue.append(item)
         self.__logger.info(
             "Request added to queue.",
             extra={"message_type": item.request_type},
         )
+        return True
 
     def get(self: Queue) -> Request:
         """Remove and return the oldest request from the queue.
