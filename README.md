@@ -45,6 +45,10 @@ SUPABASE_URL=<your_supabase_url>
 SUPABASE_KEY=<your_supabase_key>
 S2T_AUTH_DATA=<your_s2t_auth_data>
 T2N_AUTH_DATA=<your_t2n_auth_data>
+
+SPLIT_TIMEOUT=45
+QUEUE_TIMEOUT=10
+QUEUE_MAX_LEN=20
 ```
 
 - Для получения токена бота воспользуйтесь [Telegram BotFather](https://telegram.me/BotFather)
