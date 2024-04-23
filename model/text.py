@@ -48,7 +48,7 @@ def text2note(
     }
 
     body = {
-        "model": "GigaChat",
+        "model": "GigaChat-Pro",
         "messages": messages,
     }
 
